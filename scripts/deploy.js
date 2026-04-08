@@ -1,30 +1,37 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying Magnito Invoice contract to Sepolia...");
-
-  // Get the deployer account
-  const [deployer] = await ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
 
-  // Check balance
-  const balance = await ethers.provider.getBalance(deployer.address);
-  console.log("Account balance:", ethers.formatEther(balance), "ETH");
-
-  // Deploy the contract
-  const Invoice = await ethers.getContractFactory("Invoice");
+  // --- Deploy Invoice ---
+  const Invoice = await hre.ethers.getContractFactory("Invoice");
   const invoice = await Invoice.deploy();
   await invoice.waitForDeployment();
+  const invoiceAddress = await invoice.getAddress();
+  console.log("Invoice deployed to:", invoiceAddress);
 
-  // Get the contract address
-  const address = await invoice.getAddress();
-  console.log("✅ Magnito Invoice contract deployed to:", address);
-  console.log("View on Etherscan: https://sepolia.etherscan.io/address/" + address);
+  // --- Deploy BillOfLading ---
+  const BillOfLading = await hre.ethers.getContractFactory("BillOfLading");
+  const billOfLading = await BillOfLading.deploy();
+  await billOfLading.waitForDeployment();
+  const bolAddress = await billOfLading.getAddress();
+  console.log("BillOfLading deployed to:", bolAddress);
+
+  // --- Deploy LetterOfCredit ---
+  const LetterOfCredit = await hre.ethers.getContractFactory("LetterOfCredit");
+  const letterOfCredit = await LetterOfCredit.deploy();
+  await letterOfCredit.waitForDeployment();
+  const lcAddress = await letterOfCredit.getAddress();
+  console.log("LetterOfCredit deployed to:", lcAddress);
+
+  console.log("\n--- Deployment Summary ---");
+  console.log("Invoice:        ", invoiceAddress);
+  console.log("BillOfLading:   ", bolAddress);
+  console.log("LetterOfCredit: ", lcAddress);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
