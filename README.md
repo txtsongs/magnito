@@ -44,7 +44,7 @@ A two-phase commit orchestrator that moves instruments between layers while guar
 | Instrument | Description | Status |
 |---|---|---|
 | Invoice / Receivable | Tokenized trade invoice with seller, buyer, amount, document hash, and status | ✅ Deployed |
-| Electronic Bill of Lading (eBL) | Digital title to goods — transferable, pledgeable, legally enforceable | 🔨 In Development |
+| Electronic Bill of Lading (eBL) | Digital title to goods — transferable, pledgeable, legally enforceable | ✅ Deployed |
 | Letter of Credit (LC) | Bank payment guarantee with eUCP v2.1 electronic presentation | 📋 Planned |
 
 ---
@@ -105,7 +105,8 @@ npx hardhat run scripts/deploy.js --network localhost
 - [x] Invoice smart contract
 - [x] 13 passing tests
 - [x] Sepolia testnet deployment
-- [ ] Electronic Bill of Lading (eBL) contract
+- [x] Electronic Bill of Lading (eBL) contract
+- [x] 47 passing tests across all contracts
 - [ ] Letter of Credit (LC) contract
 - [ ] XRPL adapter
 - [ ] Bridge orchestrator (2-phase commit)
