@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.08">
+  <BkToCstmrDbtCdtNtfctn>
+    <GrpHdr>
+      <MsgId>MAGNITO-SETTLE-4-1775725993025</MsgId>
+      <CreDtTm>2026-04-09T09:13:13.025Z</CreDtTm>
+    </GrpHdr>
+    <Ntfctn>
+      <Id>MAGNITO-4</Id>
+      <CreDtTm>2026-04-09T09:13:13.025Z</CreDtTm>
+      <Ntry>
+        <Amt Ccy="USD">10000</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>
+          <Cd>BOOK</Cd>
+        </Sts>
+        <BookgDt>
+          <Dt>2026-04-09</Dt>
+        </BookgDt>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>MAGNITO-4</EndToEndId>
+            </Refs>
+            <AddtlTxInf>EthereumTx:0x6b6a866903f6173062b7b191733e4b1b5cf978eaddc5b5dc8a2a0f45cbab385e XRPLTx:C715F1605E0D03A4B1B1F805ECF318220557AFE89B1EF9C1F927DCEDDBD6703A</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+    </Ntfctn>
+  </BkToCstmrDbtCdtNtfctn>
+</Document>

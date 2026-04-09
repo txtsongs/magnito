@@ -25,10 +25,18 @@ async function main() {
   const lcAddress = await letterOfCredit.getAddress();
   console.log("LetterOfCredit deployed to:", lcAddress);
 
+  // --- Deploy BillOfExchange ---
+  const BillOfExchange = await hre.ethers.getContractFactory("BillOfExchange");
+  const billOfExchange = await BillOfExchange.deploy();
+  await billOfExchange.waitForDeployment();
+  const boeAddress = await billOfExchange.getAddress();
+  console.log("BillOfExchange deployed to:", boeAddress);
+
   console.log("\n--- Deployment Summary ---");
-  console.log("Invoice:        ", invoiceAddress);
-  console.log("BillOfLading:   ", bolAddress);
-  console.log("LetterOfCredit: ", lcAddress);
+  console.log("Invoice:         ", invoiceAddress);
+  console.log("BillOfLading:    ", bolAddress);
+  console.log("LetterOfCredit:  ", lcAddress);
+  console.log("BillOfExchange:  ", boeAddress);
 }
 
 main().catch((error) => {
