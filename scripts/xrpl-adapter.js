@@ -2,6 +2,7 @@ const xrpl = require("xrpl");
 const hre = require("hardhat");
 require("dotenv").config();
 const { createEvidenceBundle } = require("./evidence-logger");
+const { generateISO20022Messages } = require("./iso20022-adapter");
 
 async function main() {
   // --- Step 1: Connect to Ethereum ---
@@ -128,10 +129,29 @@ async function main() {
   console.log("Evidence bundle saved:", filename);
   console.log("Location:", filepath);
 
+  // --- Step 8: Generate ISO 20022 messages ---
+  console.log("\nGenerating ISO 20022 messages...");
+  const { pain001File, camt054File, outputDir } = generateISO20022Messages({
+    invoiceId: invoiceId,
+    ethereumContract: "0xBC43a77DB72ffecD94f1D222357f433ba3fE8086",
+    documentHash: data.documentHash,
+    seller: data.seller,
+    buyer: buyer.address,
+    amount: data.amount.toString(),
+    currency: "USD",
+    lockTxHash: lockReceipt.hash,
+    mintTxHash: mintResult.result.hash,
+  });
+
+  console.log("pain.001 saved:", pain001File);
+  console.log("camt.054 saved:", camt054File);
+  console.log("Location:", outputDir);
+
   console.log("\n--- Full Cycle Complete ---");
   console.log("Ethereum locked   → XRPL minted");
   console.log("XRPL settled      → Ethereum unlocked");
   console.log("Evidence bundle   → Written to disk");
+  console.log("ISO 20022 msgs    → Generated");
 
   await client.disconnect();
 }
