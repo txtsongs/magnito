@@ -1,6 +1,7 @@
 const xrpl = require("xrpl");
 const hre = require("hardhat");
 require("dotenv").config();
+const { createEvidenceBundle } = require("./evidence-logger");
 
 async function main() {
   // --- Step 1: Connect to Ethereum ---
@@ -18,7 +19,7 @@ async function main() {
   const createTx = await invoice.createInvoice(
     buyer.address,
     10000,
-    "QmMagnitoBridgeTest004"
+    "QmMagnitoBridgeTest005"
   );
   await createTx.wait();
 
@@ -28,7 +29,8 @@ async function main() {
 
   console.log("Locking invoice on Ethereum...");
   const lockTx = await invoice.lockInvoice(invoiceId);
-  await lockTx.wait();
+  const lockReceipt = await lockTx.wait();
+  const lockTimestamp = new Date().toISOString();
 
   let data = await invoice.getInvoice(invoiceId);
   console.log("Status:", data.status.toString(), "(3 = Locked)");
@@ -54,7 +56,6 @@ async function main() {
   };
 
   const mintHex = Buffer.from(JSON.stringify(mintMemo)).toString("hex");
-
   const mintPrepared = await client.autofill({
     TransactionType: "Payment",
     Account: wallet.address,
@@ -65,6 +66,7 @@ async function main() {
 
   const mintSigned = wallet.sign(mintPrepared);
   const mintResult = await client.submitAndWait(mintSigned.tx_blob);
+  const mintTimestamp = new Date().toISOString();
   console.log("XRPL mint:", mintResult.result.meta.TransactionResult);
   console.log("XRPL Tx:  ", mintResult.result.hash);
 
@@ -82,7 +84,6 @@ async function main() {
   };
 
   const returnHex = Buffer.from(JSON.stringify(returnMemo)).toString("hex");
-
   const returnPrepared = await client.autofill({
     TransactionType: "Payment",
     Account: wallet.address,
@@ -93,21 +94,44 @@ async function main() {
 
   const returnSigned = wallet.sign(returnPrepared);
   const returnResult = await client.submitAndWait(returnSigned.tx_blob);
+  const returnTimestamp = new Date().toISOString();
   console.log("Return recorded on XRPL:", returnResult.result.meta.TransactionResult);
   console.log("Return Tx:", returnResult.result.hash);
 
   // --- Step 6: Unlock on Ethereum ---
   console.log("\nUnlocking invoice on Ethereum...");
   const unlockTx = await invoice.unlockInvoice(invoiceId);
-  await unlockTx.wait();
+  const unlockReceipt = await unlockTx.wait();
+  const unlockTimestamp = new Date().toISOString();
 
   data = await invoice.getInvoice(invoiceId);
   console.log("Status:", data.status.toString(), "(0 = Pending)");
 
+  // --- Step 7: Write evidence bundle ---
+  console.log("\nWriting evidence bundle...");
+  const { bundle, filepath, filename } = createEvidenceBundle({
+    invoiceId: invoiceId,
+    ethereumContract: "0xBC43a77DB72ffecD94f1D222357f433ba3fE8086",
+    documentHash: data.documentHash,
+    seller: data.seller,
+    amount: data.amount.toString(),
+    lockTxHash: lockReceipt.hash,
+    lockTimestamp: lockTimestamp,
+    mintTxHash: mintResult.result.hash,
+    mintTimestamp: mintTimestamp,
+    returnTxHash: returnResult.result.hash,
+    returnTimestamp: returnTimestamp,
+    unlockTxHash: unlockReceipt.hash,
+    unlockTimestamp: unlockTimestamp,
+  });
+
+  console.log("Evidence bundle saved:", filename);
+  console.log("Location:", filepath);
+
   console.log("\n--- Full Cycle Complete ---");
   console.log("Ethereum locked   → XRPL minted");
   console.log("XRPL settled      → Ethereum unlocked");
-  console.log("Instrument is active on Ethereum again.");
+  console.log("Evidence bundle   → Written to disk");
 
   await client.disconnect();
 }
