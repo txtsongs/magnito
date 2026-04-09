@@ -3,58 +3,63 @@ const hre = require("hardhat");
 require("dotenv").config();
 
 async function main() {
-  // --- Step 1: Read invoice from Ethereum ---
+  // --- Step 1: Connect to Ethereum ---
   console.log("Connecting to Ethereum...");
   const invoice = await hre.ethers.getContractAt(
     "Invoice",
-    "0x00F485af16675A3460BE58979cc2e8ea160e1194"
+    "0xBC43a77DB72ffecD94f1D222357f433ba3fE8086"
   );
 
   const [deployer] = await hre.ethers.getSigners();
   const buyer = { address: "0x000000000000000000000000000000000000dEaD" };
 
-  console.log("Creating test invoice on Ethereum...");
-  const tx = await invoice.createInvoice(
+  // --- Step 2: Create a new invoice ---
+  console.log("Creating invoice on Ethereum...");
+  const createTx = await invoice.createInvoice(
     buyer.address,
     10000,
-    "QmMagnitoBridgeTest002"
+    "QmMagnitoBridgeTest003"
   );
-  await tx.wait();
+  await createTx.wait();
+  console.log("Invoice created.");
 
-  const data = await invoice.getInvoice(2);
-  console.log("\n--- Ethereum Invoice ---");
-  console.log("ID:     ", data.id.toString());
-  console.log("Seller: ", data.seller);
-  console.log("Amount: ", data.amount.toString());
-  console.log("Hash:   ", data.documentHash);
-  console.log("Status: ", data.status.toString(), "(0 = Pending)");
+  // Get the current invoice count to find the new invoice
+  const count = await invoice.invoiceCount();
+  const invoiceId = count.toString();
+  console.log("Invoice ID:", invoiceId);
 
-  // --- Step 2: Connect to XRPL ---
+  // --- Step 3: Lock the invoice on Ethereum ---
+  console.log("\nLocking invoice on Ethereum...");
+  const lockTx = await invoice.lockInvoice(invoiceId);
+  await lockTx.wait();
+
+  const data = await invoice.getInvoice(invoiceId);
+  console.log("Status:", data.status.toString(), "(3 = Locked)");
+  console.log("Invoice locked. Ethereum side frozen.");
+
+  // --- Step 4: Connect to XRPL ---
   console.log("\nConnecting to XRPL testnet...");
   const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233");
   await client.connect();
   console.log("Connected.");
 
   const wallet = xrpl.Wallet.fromSeed(process.env.XRPL_WALLET_SEED);
-  console.log("Bridge wallet:", wallet.address);
 
-  // --- Step 3: Mint XRPL representation ---
-  console.log("\nMinting XRPL representation of invoice...");
+  // --- Step 5: Mint XRPL representation ---
+  console.log("Minting XRPL representation...");
 
-  // Build the memo - this is the invoice data recorded on XRPL
   const memoData = {
     magnito: "bridge",
-    ethereumContract: "0x00F485af16675A3460BE58979cc2e8ea160e1194",
-    invoiceId: data.id.toString(),
+    ethereumContract: "0xBC43a77DB72ffecD94f1D222357f433ba3fE8086",
+    invoiceId: invoiceId,
     amount: data.amount.toString(),
     documentHash: data.documentHash,
     seller: data.seller,
+    bridgeStatus: "locked"
   };
 
-  // Convert memo to hex (XRPL requires hex encoding)
   const memoHex = Buffer.from(JSON.stringify(memoData)).toString("hex");
 
-  // Submit a transaction to XRPL with the invoice data as a memo
   const prepared = await client.autofill({
     TransactionType: "Payment",
     Account: wallet.address,
@@ -72,16 +77,11 @@ async function main() {
   const signed = wallet.sign(prepared);
   const result = await client.submitAndWait(signed.tx_blob);
 
-  console.log("\n--- XRPL Mint Result ---");
-  console.log("Status:  ", result.result.meta.TransactionResult);
-  console.log("XRPL Tx: ", result.result.hash);
-  console.log(
-    "Explorer:",
-    "https://testnet.xrpl.org/transactions/" + result.result.hash
-  );
-
   console.log("\n--- Bridge Complete ---");
-  console.log("Invoice", data.id.toString(), "recorded on XRPL.");
+  console.log("Ethereum status: Locked");
+  console.log("XRPL status:    ", result.result.meta.TransactionResult);
+  console.log("XRPL Tx:        ", result.result.hash);
+  console.log("Explorer:        https://testnet.xrpl.org/transactions/" + result.result.hash);
 
   await client.disconnect();
 }

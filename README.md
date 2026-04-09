@@ -65,9 +65,9 @@ Magnito is designed from the ground up to comply with:
 
 | Network | Contract | Address |
 |---|---|---|
-| Ethereum Sepolia (Testnet) | Invoice.sol | [0x00F485af16675A3460BE58979cc2e8ea160e1194](https://sepolia.etherscan.io/address/0x00F485af16675A3460BE58979cc2e8ea160e1194) |
-| Ethereum Sepolia (Testnet) | BillOfLading.sol | [0x004bd1A929CE9fA6b98Ed940ae7b6DfcD7f226C4](https://sepolia.etherscan.io/address/0x004bd1A929CE9fA6b98Ed940ae7b6DfcD7f226C4) |
-| Ethereum Sepolia (Testnet) | LetterOfCredit.sol | [0xA91E6A7C2a0eb11559E18f5b235bc9b8617d1220](https://sepolia.etherscan.io/address/0xA91E6A7C2a0eb11559E18f5b235bc9b8617d1220) |
+| Ethereum Sepolia (Testnet) | Invoice.sol | [0xBC43a77DB72ffecD94f1D222357f433ba3fE8086](https://sepolia.etherscan.io/address/0xBC43a77DB72ffecD94f1D222357f433ba3fE8086) |
+| Ethereum Sepolia (Testnet) | BillOfLading.sol | [0x3D5071a00b4842b0C511d103A7c2CCb703020C45](https://sepolia.etherscan.io/address/0x3D5071a00b4842b0C511d103A7c2CCb703020C45) |
+| Ethereum Sepolia (Testnet) | LetterOfCredit.sol | [0xE671f2D67Ef9Ab6b76EDCE759b3E46E400f9Ca0A](https://sepolia.etherscan.io/address/0xE671f2D67Ef9Ab6b76EDCE759b3E46E400f9Ca0A) |
 ---
 
 ## Repository Structure
