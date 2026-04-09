@@ -89,7 +89,7 @@ describe("Invoice", function () {
       
       await expect(
         invoice.connect(buyer).payInvoice(1)
-      ).to.be.revertedWith("Invoice is not pending");
+      ).to.be.revertedWith("Invoice is not pending or is locked");
     });
 
     it("Should emit an InvoicePaid event", async function () {
@@ -128,7 +128,7 @@ describe("Invoice", function () {
       
       await expect(
         invoice.connect(seller).cancelInvoice(1)
-      ).to.be.revertedWith("Invoice is not pending");
+      ).to.be.revertedWith("Invoice is not pending or is locked");
     });
 
     it("Should emit an InvoiceCancelled event", async function () {
@@ -149,6 +149,72 @@ describe("Invoice", function () {
       await expect(
         invoice.getInvoice(999)
       ).to.be.revertedWith("Invoice does not exist");
+    });
+
+  });
+
+  // ─────────────────────────────────────────
+  // TEST 5: Locking and unlocking
+  // ─────────────────────────────────────────
+  describe("Locking and unlocking an invoice", function () {
+
+    beforeEach(async function () {
+      await invoice.connect(seller).createInvoice(buyer.address, 10000, "hashLOCK");
+    });
+
+    it("Should allow the seller to lock an invoice", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      const result = await invoice.getInvoice(1);
+      expect(result.status).to.equal(3); // 3 = Locked
+    });
+
+    it("Should not allow the buyer to lock an invoice", async function () {
+      await expect(
+        invoice.connect(buyer).lockInvoice(1)
+      ).to.be.revertedWith("Only the seller can lock");
+    });
+
+    it("Should not allow paying a locked invoice", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      await expect(
+        invoice.connect(buyer).payInvoice(1)
+      ).to.be.revertedWith("Invoice is not pending or is locked");
+    });
+
+    it("Should not allow cancelling a locked invoice", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      await expect(
+        invoice.connect(seller).cancelInvoice(1)
+      ).to.be.revertedWith("Invoice is not pending or is locked");
+    });
+
+    it("Should allow the seller to unlock an invoice", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      await invoice.connect(seller).unlockInvoice(1);
+      const result = await invoice.getInvoice(1);
+      expect(result.status).to.equal(0); // 0 = Pending
+    });
+
+    it("Should not allow the buyer to unlock an invoice", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      await expect(
+        invoice.connect(buyer).unlockInvoice(1)
+      ).to.be.revertedWith("Only the seller can unlock");
+    });
+
+    it("Should emit an InvoiceLocked event", async function () {
+      await expect(
+        invoice.connect(seller).lockInvoice(1)
+      ).to.emit(invoice, "InvoiceLocked")
+        .withArgs(1);
+    });
+
+    it("Should emit an InvoiceUnlocked event", async function () {
+      await invoice.connect(seller).lockInvoice(1);
+      await expect(
+        invoice.connect(seller).unlockInvoice(1)
+      ).to.emit(invoice, "InvoiceUnlocked")
+        .withArgs(1);
     });
 
   });

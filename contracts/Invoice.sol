@@ -9,7 +9,7 @@ pragma solidity ^0.8.24;
 contract Invoice {
 
     // The possible states of an invoice
-    enum Status { Pending, Paid, Cancelled }
+    enum Status { Pending, Paid, Cancelled, Locked }
 
     // The data structure of a single invoice
     struct InvoiceData {
@@ -27,8 +27,10 @@ contract Invoice {
 
     // Events that get recorded on the blockchain
     event InvoiceCreated(uint256 id, address seller, address buyer, uint256 amount);
-    event InvoicePaid(uint256 id, address buyer);
-    event InvoiceCancelled(uint256 id);
+event InvoicePaid(uint256 id, address buyer);
+event InvoiceCancelled(uint256 id);
+event InvoiceLocked(uint256 id);
+event InvoiceUnlocked(uint256 id);
 
     /**
      * @notice Create a new trade invoice
@@ -63,7 +65,7 @@ contract Invoice {
     function payInvoice(uint256 _id) public {
         InvoiceData storage invoice = invoices[_id];
         require(invoice.id != 0, "Invoice does not exist");
-        require(invoice.status == Status.Pending, "Invoice is not pending");
+        require(invoice.status == Status.Pending, "Invoice is not pending or is locked");
         require(msg.sender == invoice.buyer, "Only the buyer can pay");
 
         invoice.status = Status.Paid;
@@ -77,13 +79,43 @@ contract Invoice {
     function cancelInvoice(uint256 _id) public {
         InvoiceData storage invoice = invoices[_id];
         require(invoice.id != 0, "Invoice does not exist");
-        require(invoice.status == Status.Pending, "Invoice is not pending");
-        require(msg.sender == invoice.seller, "Only the seller can cancel");
+        require(invoice.status == Status.Pending, "Invoice is not pending or is locked");
+       require(msg.sender == invoice.seller, "Only the seller can cancel");
 
         invoice.status = Status.Cancelled;
         emit InvoiceCancelled(_id);
     }
 
+    /**
+     * @notice Lock an invoice before bridging to XRPL
+
+       /**
+     * @notice Lock an invoice before bridging to XRPL
+     * @param _id The ID of the invoice to lock
+     */
+    function lockInvoice(uint256 _id) public {
+        InvoiceData storage invoice = invoices[_id];
+        require(invoice.id != 0, "Invoice does not exist");
+        require(invoice.status == Status.Pending, "Invoice is not pending");
+        require(msg.sender == invoice.seller, "Only the seller can lock");
+
+        invoice.status = Status.Locked;
+        emit InvoiceLocked(_id);
+    }
+
+    /**
+     * @notice Unlock an invoice if the bridge fails
+     * @param _id The ID of the invoice to unlock
+     */
+    function unlockInvoice(uint256 _id) public {
+        InvoiceData storage invoice = invoices[_id];
+        require(invoice.id != 0, "Invoice does not exist");
+        require(invoice.status == Status.Locked, "Invoice is not locked");
+        require(msg.sender == invoice.seller, "Only the seller can unlock");
+
+        invoice.status = Status.Pending;
+        emit InvoiceUnlocked(_id);
+    }
     /**
      * @notice Get the details of an invoice
      * @param _id The ID of the invoice to retrieve
