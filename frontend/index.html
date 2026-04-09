@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magnito — Trade Finance Bridge</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #12121a;
+      border-bottom: 1px solid #2a2a3a;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #7c6af7;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: #a78bfa;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .connect-btn {
+      background: #7c6af7;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .connect-btn:hover { background: #6a58e0; }
+    .connect-btn.connected { background: #1a472a; color: #4ade80; }
+
+    .wallet-address {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    .network-banner {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 32px;
+      font-size: 13px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .network-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+
+    .instruments-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .instrument-card {
+      background: #12121a;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .instrument-card:hover {
+      border-color: #7c6af7;
+      transition: border-color 0.2s;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #1a2a1a;
+      color: #4ade80;
+      font-weight: 500;
+    }
+
+    .card-description {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .contract-address {
+      font-size: 11px;
+      color: #444;
+      font-family: monospace;
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+
+    .contract-address a {
+      color: #7c6af7;
+      text-decoration: none;
+    }
+
+    .contract-address a:hover { text-decoration: underline; }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #7c6af7;
+      color: white;
+    }
+
+    .btn-primary:hover { background: #6a58e0; }
+
+    .btn-secondary {
+      background: #1a1a2a;
+      color: #888;
+      border: 1px solid #2a2a3a;
+    }
+
+    .btn-secondary:hover { color: #fff; border-color: #444; }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .bridge-status {
+      background: #12121a;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    .bridge-flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #0a0a0f;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .chain-box {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .chain-box .chain-name {
+      font-weight: 600;
+      color: #7c6af7;
+      font-size: 13px;
+    }
+
+    .chain-box .chain-status {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .arrow {
+      color: #444;
+      font-size: 20px;
+    }
+
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .step {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      text-align: center;
+      background: #1a1a2a;
+      color: #444;
+      border: 1px solid #2a2a3a;
+    }
+
+    .step.active {
+      background: #1a1a3a;
+      color: #7c6af7;
+      border-color: #7c6af7;
+    }
+
+    .step.complete {
+      background: #1a2a1a;
+      color: #4ade80;
+      border-color: #4ade80;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #12121a;
+      border: 1px solid #2a2a3a;
+      border-radius: 12px;
+      padding: 32px;
+      width: 480px;
+      max-width: 90vw;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+      display: block;
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0a0a0f;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-input:focus { border-color: #7c6af7; }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    .status-message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #1a2a1a;
+      color: #4ade80;
+      border: 1px solid #4ade80;
+      display: block;
+    }
+
+    .status-message.error {
+      background: #2a1a1a;
+      color: #f87171;
+      border: 1px solid #f87171;
+      display: block;
+    }
+
+    .status-message.loading {
+      background: #1a1a2a;
+      color: #7c6af7;
+      border: 1px solid #7c6af7;
+      display: block;
+    }
+
+    .instruments-list {
+      margin-top: 16px;
+    }
+
+    .instrument-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 6px;
+      background: #0a0a0f;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .instrument-row .inst-id { color: #7c6af7; font-weight: 600; }
+    .instrument-row .inst-amount { color: #fff; }
+    .instrument-row .inst-status { 
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .status-0 { background: #1a1a2a; color: #7c6af7; }
+    .status-1 { background: #1a2a1a; color: #4ade80; }
+    .status-2 { background: #2a1a1a; color: #f87171; }
+    .status-3 { background: #2a1a2a; color: #f59e0b; }
+
+    @media (max-width: 768px) {
+      .instruments-grid { grid-template-columns: 1fr; }
+      main { padding: 20px; }
+      header { padding: 16px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Magni<span>to</span></div>
+    <div class="tagline">The interoperability layer for trade finance</div>
+  </div>
+  <div>
+    <button class="connect-btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+    <div class="wallet-address" id="walletAddress"></div>
+  </div>
+</header>
+
+<main>
+
+  <div class="network-banner">
+    <div class="network-dot"></div>
+    Connected to Ethereum Sepolia Testnet — 4 instruments deployed
+  </div>
+
+  <div class="instruments-grid">
+
+    <!-- Invoice -->
+    <div class="instrument-card">
+      <div class="card-header">
+        <div class="card-title">Invoice / Receivable</div>
+        <div class="card-badge">Live</div>
+      </div>
+      <div class="card-description">
+        Tokenized trade invoice. Creates a tamper-evident digital record of a payment obligation between seller and buyer.
+      </div>
+      <div class="contract-address">
+        Contract: <a href="https://sepolia.etherscan.io/address/0xD752F870Db8eBF90eD87dD5115D4C62980FbE093" target="_blank">0xD752F870...FbE093</a>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openModal('invoice')">Create Invoice</button>
+        <button class="btn btn-secondary" onclick="loadInvoices()">View All</button>
+      </div>
+      <div id="invoiceList" class="instruments-list"></div>
+    </div>
+
+    <!-- Bill of Lading -->
+    <div class="instrument-card">
+      <div class="card-header">
+        <div class="card-title">Electronic Bill of Lading</div>
+        <div class="card-badge">Live</div>
+      </div>
+      <div class="card-description">
+        Digital title to goods. Transferable and pledgeable. MLETR-aligned with singularity, control, and integrity enforcement.
+      </div>
+      <div class="contract-address">
+        Contract: <a href="https://sepolia.etherscan.io/address/0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5" target="_blank">0xE1A976...800a5</a>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openModal('ebl')">Issue eBL</button>
+        <button class="btn btn-secondary" disabled>View All</button>
+      </div>
+    </div>
+
+    <!-- Letter of Credit -->
+    <div class="instrument-card">
+      <div class="card-header">
+        <div class="card-title">Letter of Credit</div>
+        <div class="card-badge">Live</div>
+      </div>
+      <div class="card-description">
+        Bank payment guarantee with eUCP v2.1 compliance. 5-day examination window enforced on-chain per UCP 600 Article 14.
+      </div>
+      <div class="contract-address">
+        Contract: <a href="https://sepolia.etherscan.io/address/0xE64377265CCf5d866b73F77345e706C3Bd41Ad96" target="_blank">0xE64377...41Ad96</a>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openModal('lc')">Open LC</button>
+        <button class="btn btn-secondary" disabled>View All</button>
+      </div>
+    </div>
+
+    <!-- Bill of Exchange -->
+    <div class="instrument-card">
+      <div class="card-header">
+        <div class="card-title">Bill of Exchange</div>
+        <div class="card-badge">Live</div>
+      </div>
+      <div class="card-description">
+        Digital negotiable instrument aligned with ITFA DNI initiative. Transferable, discountable, and legally enforceable under MLETR.
+      </div>
+      <div class="contract-address">
+        Contract: <a href="https://sepolia.etherscan.io/address/0x5A689090af40B7f5829D300A52fc80b8E885CC0B" target="_blank">0x5A6890...85CC0B</a>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openModal('boe')">Issue Bill</button>
+        <button class="btn btn-secondary" disabled>View All</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bridge Status -->
+  <div class="bridge-status">
+    <div class="section-title">Bridge Status — 2-Phase Commit</div>
+    <div class="bridge-flow">
+      <div class="chain-box">
+        <div class="chain-name">Ethereum</div>
+        <div class="chain-status">Authority Layer</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="chain-box">
+        <div class="chain-name">Bridge</div>
+        <div class="chain-status">Orchestrator</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="chain-box">
+        <div class="chain-name">XRPL</div>
+        <div class="chain-status">Liquidity Rail</div>
+      </div>
+    </div>
+    <div class="step-indicator">
+      <div class="step" id="step1">1. Create</div>
+      <div class="step" id="step2">2. Lock</div>
+      <div class="step" id="step3">3. Mint XRPL</div>
+      <div class="step" id="step4">4. Settle</div>
+      <div class="step" id="step5">5. Unlock</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Invoice Modal -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal">
+    <div class="modal-title">Create Invoice</div>
+    <div class="form-group">
+      <label class="form-label">Buyer Address</label>
+      <input class="form-input" id="invBuyer" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (USD)</label>
+      <input class="form-input" id="invAmount" type="number" placeholder="10000" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Hash</label>
+      <input class="form-input" id="invHash" placeholder="QmHash..." />
+    </div>
+    <div id="invoiceStatus" class="status-message"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
+      <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- eBL Modal -->
+<div class="modal-overlay" id="eblModal">
+  <div class="modal">
+    <div class="modal-title">Issue Electronic Bill of Lading</div>
+    <div class="form-group">
+      <label class="form-label">Holder Address</label>
+      <input class="form-input" id="eblHolder" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Hash</label>
+      <input class="form-input" id="eblHash" placeholder="QmHash..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Vessel Name</label>
+      <input class="form-input" id="eblVessel" placeholder="MV Magnito Star" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Port of Loading</label>
+      <input class="form-input" id="eblPortLoad" placeholder="Singapore" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Port of Discharge</label>
+      <input class="form-input" id="eblPortDis" placeholder="Rotterdam" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Goods Description</label>
+      <input class="form-input" id="eblGoods" placeholder="Electronics, 500 units" />
+    </div>
+    <div id="eblStatus" class="status-message"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="issueEBL()">Issue eBL</button>
+      <button class="btn btn-secondary" onclick="closeModal('eblModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- LC Modal -->
+<div class="modal-overlay" id="lcModal">
+  <div class="modal">
+    <div class="modal-title">Open Letter of Credit</div>
+    <div class="form-group">
+      <label class="form-label">Beneficiary Address</label>
+      <input class="form-input" id="lcBeneficiary" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Applicant Address</label>
+      <input class="form-input" id="lcApplicant" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (USD)</label>
+      <input class="form-input" id="lcAmount" type="number" placeholder="50000" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Hash</label>
+      <input class="form-input" id="lcHash" placeholder="QmHash..." />
+    </div>
+    <div id="lcStatus" class="status-message"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="openLC()">Open LC</button>
+      <button class="btn btn-secondary" onclick="closeModal('lcModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bill of Exchange Modal -->
+<div class="modal-overlay" id="boeModal">
+  <div class="modal">
+    <div class="modal-title">Issue Bill of Exchange</div>
+    <div class="form-group">
+      <label class="form-label">Drawee Address (Buyer)</label>
+      <input class="form-input" id="boeDrawee" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Payee Address</label>
+      <input class="form-input" id="boePayee" placeholder="0x..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (USD)</label>
+      <input class="form-input" id="boeAmount" type="number" placeholder="25000" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Maturity Date</label>
+      <input class="form-input" id="boeMaturity" type="date" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Document Hash</label>
+      <input class="form-input" id="boeHash" placeholder="QmHash..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bill Reference</label>
+      <input class="form-input" id="boeRef" placeholder="BOE-2026-001" />
+    </div>
+    <div id="boeStatus" class="status-message"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="issueBOE()">Issue Bill</button>
+      <button class="btn btn-secondary" onclick="closeModal('boeModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Contract addresses on Sepolia
+  const CONTRACTS = {
+    invoice: "0xD752F870Db8eBF90eD87dD5115D4C62980FbE093",
+    ebl: "0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5",
+    lc: "0xE64377265CCf5d866b73F77345e706C3Bd41Ad96",
+    boe: "0x5A689090af40B7f5829D300A52fc80b8E885CC0B"
+  };
+
+  // Minimal ABIs — only the functions we need
+  const INVOICE_ABI = [
+    "function createInvoice(address _buyer, uint256 _amount, string memory _documentHash) public returns (uint256)",
+    "function getInvoice(uint256 _id) public view returns (tuple(uint256 id, address seller, address buyer, uint256 amount, string documentHash, uint8 status))",
+    "function invoiceCount() public view returns (uint256)"
+  ];
+
+  const EBL_ABI = [
+    "function issueEBL(address _holder, string memory _documentHash, string memory _vesselName, string memory _portOfLoading, string memory _portOfDischarge, string memory _goodsDescription) public returns (uint256)"
+  ];
+
+  const LC_ABI = [
+    "function openLC(address _applicant, address _beneficiary, uint256 _amount, string memory _currency, string memory _documentHash, string[] memory _requiredDocuments, uint256 _presentationDeadline) public returns (uint256)"
+  ];
+
+  const BOE_ABI = [
+    "function issueBOE(address _drawee, address _payee, uint256 _amount, string memory _currency, uint256 _maturityDate, string memory _documentHash, string memory _billReference) public returns (uint256)"
+  ];
+
+  const STATUS_LABELS = {
+    invoice: ["Pending", "Paid", "Cancelled", "Locked"],
+    boe: ["Issued", "Accepted", "Transferred", "Discounted", "Settled", "Dishonoured", "Cancelled"]
+  };
+
+  let provider, signer, walletConnected = false;
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      alert("MetaMask not found. Please install MetaMask.");
+      return;
+    }
+
+    try {
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      const address = await signer.getAddress();
+
+      document.getElementById("connectBtn").textContent = "Connected";
+      document.getElementById("connectBtn").classList.add("connected");
+      document.getElementById("walletAddress").textContent =
+        address.slice(0, 6) + "..." + address.slice(-4);
+
+      walletConnected = true;
+    } catch (err) {
+      alert("Failed to connect: " + err.message);
+    }
+  }
+
+  function openModal(type) {
+    if (!walletConnected) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+    const modals = { invoice: "invoiceModal", ebl: "eblModal", lc: "lcModal", boe: "boeModal" };
+    document.getElementById(modals[type]).classList.add("open");
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove("open");
+  }
+
+  function showStatus(id, message, type) {
+    const el = document.getElementById(id);
+    el.textContent = message;
+    el.className = "status-message " + type;
+  }
+
+  async function createInvoice() {
+    const buyer = document.getElementById("invBuyer").value;
+    const amount = document.getElementById("invAmount").value;
+    const hash = document.getElementById("invHash").value;
+
+    if (!buyer || !amount || !hash) {
+      showStatus("invoiceStatus", "Please fill in all fields.", "error");
+      return;
+    }
+
+    try {
+      showStatus("invoiceStatus", "Submitting transaction...", "loading");
+      const contract = new ethers.Contract(CONTRACTS.invoice, INVOICE_ABI, signer);
+      const tx = await contract.createInvoice(buyer, amount, hash);
+      showStatus("invoiceStatus", "Transaction submitted. Waiting for confirmation...", "loading");
+      await tx.wait();
+      showStatus("invoiceStatus", "Invoice created successfully.", "success");
+    } catch (err) {
+      showStatus("invoiceStatus", "Error: " + err.message, "error");
+    }
+  }
+
+  async function issueEBL() {
+    const holder = document.getElementById("eblHolder").value;
+    const hash = document.getElementById("eblHash").value;
+    const vessel = document.getElementById("eblVessel").value;
+    const portLoad = document.getElementById("eblPortLoad").value;
+    const portDis = document.getElementById("eblPortDis").value;
+    const goods = document.getElementById("eblGoods").value;
+
+    if (!holder || !hash || !vessel || !portLoad || !portDis || !goods) {
+      showStatus("eblStatus", "Please fill in all fields.", "error");
+      return;
+    }
+
+    try {
+      showStatus("eblStatus", "Submitting transaction...", "loading");
+      const contract = new ethers.Contract(CONTRACTS.ebl, EBL_ABI, signer);
+      const tx = await contract.issueEBL(holder, hash, vessel, portLoad, portDis, goods);
+      showStatus("eblStatus", "Transaction submitted. Waiting for confirmation...", "loading");
+      await tx.wait();
+      showStatus("eblStatus", "eBL issued successfully.", "success");
+    } catch (err) {
+      showStatus("eblStatus", "Error: " + err.message, "error");
+    }
+  }
+
+  async function openLC() {
+    const beneficiary = document.getElementById("lcBeneficiary").value;
+    const applicant = document.getElementById("lcApplicant").value;
+    const amount = document.getElementById("lcAmount").value;
+    const hash = document.getElementById("lcHash").value;
+
+    if (!beneficiary || !applicant || !amount || !hash) {
+      showStatus("lcStatus", "Please fill in all fields.", "error");
+      return;
+    }
+
+    try {
+      showStatus("lcStatus", "Submitting transaction...", "loading");
+      const contract = new ethers.Contract(CONTRACTS.lc, LC_ABI, signer);
+      const deadline = Math.floor(Date.now() / 1000) + (90 * 86400);
+      const tx = await contract.openLC(applicant, beneficiary, amount, "USD", hash, ["Commercial Invoice", "Bill of Lading"], deadline);
+      showStatus("lcStatus", "Transaction submitted. Waiting for confirmation...", "loading");
+      await tx.wait();
+      showStatus("lcStatus", "Letter of Credit opened successfully.", "success");
+    } catch (err) {
+      showStatus("lcStatus", "Error: " + err.message, "error");
+    }
+  }
+
+  async function issueBOE() {
+    const drawee = document.getElementById("boeDrawee").value;
+    const payee = document.getElementById("boePayee").value;
+    const amount = document.getElementById("boeAmount").value;
+    const maturity = document.getElementById("boeMaturity").value;
+    const hash = document.getElementById("boeHash").value;
+    const ref = document.getElementById("boeRef").value;
+
+    if (!drawee || !payee || !amount || !maturity || !hash || !ref) {
+      showStatus("boeStatus", "Please fill in all fields.", "error");
+      return;
+    }
+
+    try {
+      showStatus("boeStatus", "Submitting transaction...", "loading");
+      const contract = new ethers.Contract(CONTRACTS.boe, BOE_ABI, signer);
+      const maturityTimestamp = Math.floor(new Date(maturity).getTime() / 1000);
+      const tx = await contract.issueBOE(drawee, payee, amount, "USD", maturityTimestamp, hash, ref);
+      showStatus("boeStatus", "Transaction submitted. Waiting for confirmation...", "loading");
+      await tx.wait();
+      showStatus("boeStatus", "Bill of Exchange issued successfully.", "success");
+    } catch (err) {
+      showStatus("boeStatus", "Error: " + err.message, "error");
+    }
+  }
+
+  async function loadInvoices() {
+    if (!walletConnected) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+
+    const list = document.getElementById("invoiceList");
+    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
+
+    try {
+      const contract = new ethers.Contract(CONTRACTS.invoice, INVOICE_ABI, provider);
+      const count = await contract.invoiceCount();
+      
+      if (count == 0) {
+        list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No invoices found.</div>";
+        return;
+      }
+
+      list.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        const inv = await contract.getInvoice(i);
+        const statusLabel = STATUS_LABELS.invoice[inv.status] || "Unknown";
+        const statusClass = "status-" + inv.status;
+        list.innerHTML += `
+          <div class="instrument-row">
+            <span class="inst-id">#${inv.id}</span>
+            <span class="inst-amount">${inv.amount} USD</span>
+            <span class="inst-status ${statusClass}">${statusLabel}</span>
+          </div>`;
+      }
+    } catch (err) {
+      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading invoices.</div>";
+    }
+  }
+
+  // Close modal on overlay click
+  document.querySelectorAll(".modal-overlay").forEach(overlay => {
+    overlay.addEventListener("click", function(e) {
+      if (e.target === this) this.classList.remove("open");
+    });
+  });
+</script>
+
+<!-- Load ethers.js from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+
+</body>
+</html>
