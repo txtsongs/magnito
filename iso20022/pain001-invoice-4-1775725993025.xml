@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>MAGNITO-4-1775725993025</MsgId>
+      <CreDtTm>2026-04-09T09:13:13.025Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>10000</CtrlSum>
+      <InitgPty>
+        <Nm>Magnito Bridge</Nm>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>MAGNITO-INV-4</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <ReqdExctnDt>
+        <Dt>2026-04-09</Dt>
+      </ReqdExctnDt>
+      <Dbtr>
+        <Nm>0x000000000000000000000000000000000000dEaD</Nm>
+      </Dbtr>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>MAGNITO-4</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">10000</InstdAmt>
+        </Amt>
+        <Cdtr>
+          <Nm>0x4584b1090382714Be4763Dc965Ae4B30549fDD95</Nm>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>Invoice 4 - QmMagnitoBridgeTest005</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

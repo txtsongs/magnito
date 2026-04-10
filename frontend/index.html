@@ -405,7 +405,7 @@
 
 <main>
 
-  <div class="network-banner">
+  <div class="network-banner" id="networkBanner">
     <div class="network-dot"></div>
     Connected to Ethereum Sepolia Testnet — 4 instruments deployed
   </div>
@@ -445,8 +445,9 @@
       </div>
       <div class="card-actions">
         <button class="btn btn-primary" onclick="openModal('ebl')">Issue eBL</button>
-        <button class="btn btn-secondary" disabled>View All</button>
+        <button class="btn btn-secondary" onclick="loadEBLs()">View All</button>
       </div>
+      <div id="eblList" class="instruments-list"></div>
     </div>
 
     <!-- Letter of Credit -->
@@ -463,8 +464,9 @@
       </div>
       <div class="card-actions">
         <button class="btn btn-primary" onclick="openModal('lc')">Open LC</button>
-        <button class="btn btn-secondary" disabled>View All</button>
+        <button class="btn btn-secondary" onclick="loadLCs()">View All</button>
       </div>
+      <div id="lcList" class="instruments-list"></div>
     </div>
 
     <!-- Bill of Exchange -->
@@ -481,8 +483,9 @@
       </div>
       <div class="card-actions">
         <button class="btn btn-primary" onclick="openModal('boe')">Issue Bill</button>
-        <button class="btn btn-secondary" disabled>View All</button>
+        <button class="btn btn-secondary" onclick="loadBOEs()">View All</button>
       </div>
+      <div id="boeList" class="instruments-list"></div>
     </div>
 
   </div>
@@ -849,7 +852,140 @@
       list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading invoices.</div>";
     }
   }
+  const EBL_VIEW_ABI = [
+    "function getEBL(uint256 _id) public view returns (tuple(uint256 id, address carrier, address holder, address pledgee, string documentHash, string vesselName, string portOfLoading, string portOfDischarge, string goodsDescription, uint8 status))",
+    "function eblCount() public view returns (uint256)"
+  ];
 
+  const LC_VIEW_ABI = [
+    "function getLC(uint256 _id) public view returns (tuple(uint256 id, address issuingBank, address applicant, address beneficiary, uint256 amount, string currency, string documentHash, string[] requiredDocuments, uint256 presentationDeadline, uint256 examinationDeadline, string[] presentedDocHashes, string discrepancyReason, uint8 status))",
+    "function lcCount() public view returns (uint256)"
+  ];
+
+  const BOE_VIEW_ABI = [
+    "function getBOE(uint256 _id) public view returns (tuple(uint256 id, address drawer, address drawee, address payee, address financier, uint256 amount, string currency, uint256 maturityDate, string documentHash, string billReference, uint8 status))",
+    "function billCount() public view returns (uint256)"
+  ];
+
+  const EBL_STATUS = ["Active", "Pledged", "Surrendered"];
+  const LC_STATUS = ["Open", "Presented", "Discrepancy", "Accepted", "Refused", "Expired"];
+  const BOE_STATUS = ["Issued", "Accepted", "Transferred", "Discounted", "Settled", "Dishonoured", "Cancelled"];
+
+  async function loadEBLs() {
+    if (!walletConnected) { alert("Please connect your wallet first."); return; }
+    const list = document.getElementById("eblList");
+    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
+    try {
+      const contract = new ethers.Contract(CONTRACTS.ebl, EBL_VIEW_ABI, provider);
+      const count = await contract.eblCount();
+      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No eBLs found.</div>"; return; }
+      list.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        const ebl = await contract.getEBL(i);
+        const statusLabel = EBL_STATUS[ebl.status] || "Unknown";
+        const statusClass = "status-" + ebl.status;
+        list.innerHTML += `
+          <div class="instrument-row">
+            <span class="inst-id">#${ebl.id}</span>
+            <span class="inst-amount">${ebl.vesselName}</span>
+            <span class="inst-status ${statusClass}">${statusLabel}</span>
+          </div>`;
+      }
+    } catch (err) {
+      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading eBLs.</div>";
+    }
+  }
+
+  async function loadLCs() {
+    if (!walletConnected) { alert("Please connect your wallet first."); return; }
+    const list = document.getElementById("lcList");
+    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
+    try {
+      const contract = new ethers.Contract(CONTRACTS.lc, LC_VIEW_ABI, provider);
+      const count = await contract.lcCount();
+      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No LCs found.</div>"; return; }
+      list.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        const lc = await contract.getLC(i);
+        const statusLabel = LC_STATUS[lc.status] || "Unknown";
+        const statusClass = "status-" + lc.status;
+        list.innerHTML += `
+          <div class="instrument-row">
+            <span class="inst-id">#${lc.id}</span>
+            <span class="inst-amount">${lc.amount} ${lc.currency}</span>
+            <span class="inst-status ${statusClass}">${statusLabel}</span>
+          </div>`;
+      }
+    } catch (err) {
+      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading LCs.</div>";
+    }
+  }
+
+  async function loadBOEs() {
+    if (!walletConnected) { alert("Please connect your wallet first."); return; }
+    const list = document.getElementById("boeList");
+    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
+    try {
+      const contract = new ethers.Contract(CONTRACTS.boe, BOE_VIEW_ABI, provider);
+      const count = await contract.billCount();
+      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No bills found.</div>"; return; }
+      list.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        const boe = await contract.getBOE(i);
+        const statusLabel = BOE_STATUS[boe.status] || "Unknown";
+        const statusClass = "status-" + boe.status;
+        list.innerHTML += `
+          <div class="instrument-row">
+            <span class="inst-id">#${boe.id}</span>
+            <span class="inst-amount">${boe.amount} ${boe.currency}</span>
+            <span class="inst-status ${statusClass}">${statusLabel}</span>
+          </div>`;
+      }
+    } catch (err) {
+      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading bills.</div>";
+    }
+  }
+
+  // Network check — prompt if not on Sepolia
+  async function checkNetwork() {
+    if (!window.ethereum) return;
+    const chainId = await window.ethereum.request({ method: "eth_chainId" });
+    if (chainId !== "0xaa36a7") {
+      const banner = document.getElementById("networkBanner");
+      banner.style.background = "#2a1a1a";
+      banner.style.borderColor = "#f87171";
+      banner.innerHTML = `
+        <div style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></div>
+        Wrong network detected. Please switch MetaMask to Sepolia testnet.
+        <button onclick="switchToSepolia()" style="margin-left:auto;background:#f87171;color:white;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px">Switch Network</button>
+      `;
+    }
+  }
+
+  async function switchToSepolia() {
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0xaa36a7" }],
+      });
+      window.location.reload();
+    } catch (err) {
+      if (err.code === 4902) {
+        alert("Sepolia network not found in MetaMask. Please add it manually.");
+      } else {
+        alert("Could not switch network: " + err.message);
+      }
+    }
+  }
+
+  window.addEventListener("load", async () => {
+    if (window.ethereum) {
+      await checkNetwork();
+      window.ethereum.on("chainChanged", checkNetwork);
+      window.ethereum.on("accountsChanged", () => window.location.reload());
+    }
+  });
+  window.ethereum && window.ethereum.on("chainChanged", checkNetwork);
   // Close modal on overlay click
   document.querySelectorAll(".modal-overlay").forEach(overlay => {
     overlay.addEventListener("click", function(e) {
