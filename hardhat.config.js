@@ -9,6 +9,10 @@ module.exports = {
       url: process.env.ALCHEMY_API_URL,
       accounts: [process.env.PRIVATE_KEY],
     },
+    xdc: {
+      url: "https://rpc.apothem.network",
+      accounts: [process.env.PRIVATE_KEY],
+    },
   },
   paths: {
     sources: "./contracts",

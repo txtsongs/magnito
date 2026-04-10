@@ -69,6 +69,10 @@ Magnito is designed from the ground up to comply with:
 | Ethereum Sepolia (Testnet) | BillOfLading.sol | [0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5](https://sepolia.etherscan.io/address/0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5) |
 | Ethereum Sepolia (Testnet) | LetterOfCredit.sol | [0xE64377265CCf5d866b73F77345e706C3Bd41Ad96](https://sepolia.etherscan.io/address/0xE64377265CCf5d866b73F77345e706C3Bd41Ad96) |
 | Ethereum Sepolia (Testnet) | BillOfExchange.sol | [0x5A689090af40B7f5829D300A52fc80b8E885CC0B](https://sepolia.etherscan.io/address/0x5A689090af40B7f5829D300A52fc80b8E885CC0B) |
+| XDC Apothem (Testnet) | Invoice.sol | [0x71B2d0Bdb72dB416930fDEc4bCa4DbF53288AF18](https://explorer.apothem.network/address/0x71B2d0Bdb72dB416930fDEc4bCa4DbF53288AF18) |
+| XDC Apothem (Testnet) | BillOfLading.sol | [0x5a19eecd02Ea90da89B1a21C8D616191e8dc7fD5](https://explorer.apothem.network/address/0x5a19eecd02Ea90da89B1a21C8D616191e8dc7fD5) |
+| XDC Apothem (Testnet) | LetterOfCredit.sol | [0x414628DDdFbBd7c5E42195aE245f507BCaA85C70](https://explorer.apothem.network/address/0x414628DDdFbBd7c5E42195aE245f507BCaA85C70) |
+| XDC Apothem (Testnet) | BillOfExchange.sol | [0xC034668469C37Eaa81610B359503220d588C3F50](https://explorer.apothem.network/address/0xC034668469C37Eaa81610B359503220d588C3F50) |
 ---
 
 ## Repository Structure
