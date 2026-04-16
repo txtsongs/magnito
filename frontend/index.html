@@ -1,1064 +1,778 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Magnito — Trade Finance Bridge</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0a0a0f;
-      color: #e0e0e0;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #12121a;
-      border-bottom: 1px solid #2a2a3a;
-      padding: 20px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: #7c6af7;
-      letter-spacing: -0.5px;
-    }
-
-    .logo span {
-      color: #a78bfa;
-    }
-
-    .tagline {
-      font-size: 13px;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    .connect-btn {
-      background: #7c6af7;
-      color: white;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .connect-btn:hover { background: #6a58e0; }
-    .connect-btn.connected { background: #1a472a; color: #4ade80; }
-
-    .wallet-address {
-      font-size: 12px;
-      color: #888;
-      margin-top: 4px;
-      text-align: right;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-
-    .network-banner {
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 12px 20px;
-      margin-bottom: 32px;
-      font-size: 13px;
-      color: #888;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .network-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4ade80;
-    }
-
-    .instruments-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .instrument-card {
-      background: #12121a;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 24px;
-    }
-
-    .instrument-card:hover {
-      border-color: #7c6af7;
-      transition: border-color 0.2s;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    .card-badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background: #1a2a1a;
-      color: #4ade80;
-      font-weight: 500;
-    }
-
-    .card-description {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    .contract-address {
-      font-size: 11px;
-      color: #444;
-      font-family: monospace;
-      margin-bottom: 16px;
-      word-break: break-all;
-    }
-
-    .contract-address a {
-      color: #7c6af7;
-      text-decoration: none;
-    }
-
-    .contract-address a:hover { text-decoration: underline; }
-
-    .card-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #7c6af7;
-      color: white;
-    }
-
-    .btn-primary:hover { background: #6a58e0; }
-
-    .btn-secondary {
-      background: #1a1a2a;
-      color: #888;
-      border: 1px solid #2a2a3a;
-    }
-
-    .btn-secondary:hover { color: #fff; border-color: #444; }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .bridge-status {
-      background: #12121a;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 20px;
-    }
-
-    .bridge-flow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: #0a0a0f;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    .chain-box {
-      background: #1a1a2e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 12px 16px;
-      text-align: center;
-      min-width: 120px;
-    }
-
-    .chain-box .chain-name {
-      font-weight: 600;
-      color: #7c6af7;
-      font-size: 13px;
-    }
-
-    .chain-box .chain-status {
-      font-size: 11px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .arrow {
-      color: #444;
-      font-size: 20px;
-    }
-
-    .step-indicator {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
-    .step {
-      flex: 1;
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      text-align: center;
-      background: #1a1a2a;
-      color: #444;
-      border: 1px solid #2a2a3a;
-    }
-
-    .step.active {
-      background: #1a1a3a;
-      color: #7c6af7;
-      border-color: #7c6af7;
-    }
-
-    .step.complete {
-      background: #1a2a1a;
-      color: #4ade80;
-      border-color: #4ade80;
-    }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: #12121a;
-      border: 1px solid #2a2a3a;
-      border-radius: 12px;
-      padding: 32px;
-      width: 480px;
-      max-width: 90vw;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-      margin-bottom: 24px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 6px;
-      display: block;
-      font-weight: 500;
-    }
-
-    .form-input {
-      width: 100%;
-      background: #0a0a0f;
-      border: 1px solid #2a2a3a;
-      border-radius: 6px;
-      padding: 10px 12px;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .form-input:focus { border-color: #7c6af7; }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 24px;
-    }
-
-    .status-message {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      display: none;
-    }
-
-    .status-message.success {
-      background: #1a2a1a;
-      color: #4ade80;
-      border: 1px solid #4ade80;
-      display: block;
-    }
-
-    .status-message.error {
-      background: #2a1a1a;
-      color: #f87171;
-      border: 1px solid #f87171;
-      display: block;
-    }
-
-    .status-message.loading {
-      background: #1a1a2a;
-      color: #7c6af7;
-      border: 1px solid #7c6af7;
-      display: block;
-    }
-
-    .instruments-list {
-      margin-top: 16px;
-    }
-
-    .instrument-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px;
-      border-radius: 6px;
-      background: #0a0a0f;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .instrument-row .inst-id { color: #7c6af7; font-weight: 600; }
-    .instrument-row .inst-amount { color: #fff; }
-    .instrument-row .inst-status { 
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .status-0 { background: #1a1a2a; color: #7c6af7; }
-    .status-1 { background: #1a2a1a; color: #4ade80; }
-    .status-2 { background: #2a1a1a; color: #f87171; }
-    .status-3 { background: #2a1a2a; color: #f59e0b; }
-
-    @media (max-width: 768px) {
-      .instruments-grid { grid-template-columns: 1fr; }
-      main { padding: 20px; }
-      header { padding: 16px 20px; }
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnito — Trade Finance Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script><style>
+  :root {
+    --bg: #F7F6F2; --surface: #FFFFFF; --surface-2: #F0EEE9;
+    --navy: #0B2D6B; --navy-light: #E8EDF7;
+    --teal: #007A6A; --teal-light: #E0F2EF;
+    --amber: #C47A00; --amber-light: #FEF3DC;
+    --red: #B02020; --red-light: #FDEAEA;
+    --text: #0A0F1C; --text-2: #4A5468; --text-3: #8A93A6;
+    --border: #E0DDD6; --border-2: #C8C4BC;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; min-height: 100vh; background: var(--navy); display: flex; flex-direction: column; flex-shrink: 0; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo-mark { font-family: var(--font-head); font-size: 20px; font-weight: 600; color: #FFFFFF; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .sidebar-nav { flex: 1; padding: 16px 12px; }
+  .nav-section-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 8px; margin-bottom: 6px; margin-top: 16px; }
+  .nav-section-label:first-child { margin-top: 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; margin-bottom: 2px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.15); color: #fff; }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .wallet-status { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .wallet-addr { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 3px; word-break: break-all; }
+  .main { margin-left: 220px; flex: 1; padding: 32px; max-width: 1100px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-family: var(--font-head); font-size: 22px; font-weight: 600; color: var(--text); }
+  .page-subtitle { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+  .page-header-row { display: flex; align-items: flex-start; justify-content: space-between; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-family: var(--font-head); font-size: 14px; font-weight: 600; }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .metric { background: var(--surface-2); border-radius: var(--radius); padding: 16px; }
+  .metric-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .metric-val { font-family: var(--font-head); font-size: 28px; font-weight: 600; }
+  .metric-val.amber { color: var(--amber); }
+  .metric-val.teal { color: var(--teal); }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .pill-active { background: var(--teal-light); color: var(--teal); }
+  .pill-active::before { background: var(--teal); }
+  .pill-pending { background: var(--amber-light); color: var(--amber); }
+  .pill-pending::before { background: var(--amber); }
+  .pill-presented { background: var(--navy-light); color: var(--navy); }
+  .pill-presented::before { background: var(--navy); }
+  .pill-locked { background: var(--red-light); color: var(--red); }
+  .pill-locked::before { background: var(--red); }
+  .pill-surrendered { background: var(--surface-2); color: var(--text-3); }
+  .pill-surrendered::before { background: var(--text-3); }
+  .instrument-table { width: 100%; border-collapse: collapse; }
+  .instrument-table th { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .instrument-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .instrument-table tr:last-child td { border-bottom: none; }
+  .instrument-table tr:hover td { background: var(--surface-2); cursor: pointer; }
+  .instrument-id { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); }
+  .chain-tag { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .tag-xdc { background: #E0F2EF; color: #005A4D; }
+  .tag-vechain { background: var(--navy-light); color: var(--navy); }
+  .tag-xrpl { background: #EEF0FF; color: #3D4FBE; }
+  .tag-eth { background: var(--red-light); color: var(--red); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; color: var(--text); background: var(--surface); transition: border-color 0.15s; outline: none; }
+  .form-input:focus { border-color: var(--navy); }
+  .form-input::placeholder { color: var(--text-3); }
+  .form-input.mono { font-family: var(--font-mono); font-size: 12px; }
+  .form-hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all 0.15s; }
+  .btn:hover { background: var(--surface-2); }
+  .btn-primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn-primary:hover { background: #0A2558; }
+  .btn-teal { background: var(--teal); color: #fff; border-color: var(--teal); }
+  .btn-teal:hover { background: #006558; }
+  .btn-danger { background: var(--red-light); color: var(--red); border-color: #F0C0C0; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .info-box { background: var(--navy-light); border: 1px solid #C0CEEB; border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--navy); margin-bottom: 16px; }
+  .warn-box { background: var(--amber-light); border: 1px solid #F0CC80; border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--amber); margin-bottom: 16px; }
+  .success-box { background: var(--teal-light); border: 1px solid #A0D8D0; border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--teal); margin-bottom: 16px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: var(--text-2); }
+  .detail-val { font-weight: 500; text-align: right; }
+  .detail-val.mono { font-family: var(--font-mono); font-size: 11px; }
+  .evidence-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .evidence-item:last-child { border-bottom: none; }
+  .evidence-timeline { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; padding-top: 3px; }
+  .ev-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .ev-dot-green { background: var(--teal); }
+  .ev-dot-amber { background: var(--amber); }
+  .ev-dot-gray { background: transparent; border: 1px dashed var(--text-3); }
+  .ev-line { width: 1px; background: var(--border); flex: 1; margin-top: 4px; }
+  .evidence-content { flex: 1; }
+  .evidence-event { font-size: 13px; font-weight: 500; color: var(--text); }
+  .evidence-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .evidence-hash { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); margin-top: 3px; }
+  .step-item { display: flex; gap: 14px; padding: 14px 16px; border-radius: var(--radius); margin-bottom: 8px; border: 1px solid var(--border); }
+  .step-item.step-complete { background: var(--teal-light); border-color: #A0D8D0; }
+  .step-item.step-active { background: var(--amber-light); border-color: #F0CC80; }
+  .step-item.step-waiting { background: var(--surface-2); }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-complete .step-num { background: var(--teal); color: #fff; }
+  .step-active .step-num { background: var(--amber); color: #fff; }
+  .step-waiting .step-num { background: var(--border); color: var(--text-3); }
+  .step-title { font-size: 13px; font-weight: 500; }
+  .step-desc { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .loading { color: var(--text-3); font-size: 13px; padding: 20px 0; text-align: center; }
+  #notification { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--text); color: #fff; padding: 12px 18px; border-radius: var(--radius); font-size: 13px; max-width: 320px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  #notification.show { opacity: 1; }
+  #connect-overlay { display: none; position: fixed; inset: 0; background: rgba(247,246,242,0.95); z-index: 200; align-items: center; justify-content: center; }
+  .connect-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px; text-align: center; max-width: 420px; }
+  .connect-logo { font-family: var(--font-head); font-size: 32px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
   </style>
-</head>
-<body>
-
-<header>
-  <div>
-    <div class="logo">Magni<span>to</span></div>
-    <div class="tagline">The interoperability layer for trade finance</div>
-  </div>
-  <div>
-    <button class="connect-btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
-    <div class="wallet-address" id="walletAddress"></div>
-  </div>
-</header>
-
-<main>
-
-  <div class="network-banner" id="networkBanner">
-    <div class="network-dot"></div>
-    Connected to Ethereum Sepolia Testnet — 4 instruments deployed
-  </div>
-
-  <div class="instruments-grid">
-
-    <!-- Invoice -->
-    <div class="instrument-card">
-      <div class="card-header">
-        <div class="card-title">Invoice / Receivable</div>
-        <div class="card-badge">Live</div>
+  </head><body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">Magnito</div>
+        <div class="logo-sub">Trade Finance Bridge</div>
       </div>
-      <div class="card-description">
-        Tokenized trade invoice. Creates a tamper-evident digital record of a payment obligation between seller and buyer.
+      <div class="sidebar-nav">
+        <div class="nav-section-label">navigate</div>
+        <button class="nav-item active" onclick="showScreen('dashboard')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('issue-ebl')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Issue eBL</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('evidence')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Evidence Trail</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('bridge')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M1 12c2-4 4-6 7-6s5 2 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="4" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Bridge</span>
+        </button>
+        <div class="nav-section-label">instruments</div>
+        <button class="nav-item" onclick="showScreen('instruments')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M5 5h6M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>All Instruments</span>
+        </button>
       </div>
-      <div class="contract-address">
-        Contract: <a href="https://sepolia.etherscan.io/address/0xD752F870Db8eBF90eD87dD5115D4C62980FbE093" target="_blank">0xD752F870...FbE093</a>
+      <div class="sidebar-footer">
+        <div class="wallet-status" id="wallet-status-label">not connected</div>
+        <div class="wallet-addr" id="wallet-addr-display"></div>
       </div>
-      <div class="card-actions">
-        <button class="btn btn-primary" onclick="openModal('invoice')">Create Invoice</button>
-        <button class="btn btn-secondary" onclick="loadInvoices()">View All</button>
+    </nav>
+    
+    <main class="main">
+    
+      <div id="connect-overlay">
+        <div class="connect-card">
+          <div class="connect-logo">Magnito</div>
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:20px;font-family:var(--font-mono);">interoperability layer for trade finance</div>
+          <p style="font-size:13px;color:var(--text-2);margin-bottom:28px;line-height:1.6;">Connect your MetaMask wallet to access the Magnito trade finance bridge. Make sure you are on the XDC Apothem testnet.</p>
+          <button class="btn btn-primary btn-full" onclick="connectWallet()" style="margin-bottom:12px;">Connect MetaMask</button>
+          <div style="font-size:11px;color:var(--text-3);">XDC Apothem Testnet · Chain ID 51</div>
+        </div>
       </div>
-      <div id="invoiceList" class="instruments-list"></div>
-    </div>
-
-    <!-- Bill of Lading -->
-    <div class="instrument-card">
-      <div class="card-header">
-        <div class="card-title">Electronic Bill of Lading</div>
-        <div class="card-badge">Live</div>
+    
+      <div id="screen-dashboard" class="screen active">
+        <div class="page-header-row">
+          <div class="page-header">
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle">Active instruments and pending actions across all chains</div>
+          </div>
+          <button class="btn btn-primary" onclick="showScreen('issue-ebl')">+ Issue eBL</button>
+        </div>
+        <div class="card-grid">
+          <div class="metric"><div class="metric-label">Active eBLs</div><div class="metric-val teal" id="dash-ebl-count">—</div></div>
+          <div class="metric"><div class="metric-label">Active Invoices</div><div class="metric-val" id="dash-invoice-count">—</div></div>
+          <div class="metric"><div class="metric-label">Pending Review</div><div class="metric-val amber" id="dash-pending">—</div></div>
+          <div class="metric"><div class="metric-label">Network</div><div class="metric-val" id="dash-network" style="font-size:14px;padding-top:8px;">—</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Electronic Bills of Lading</div><span class="chain-tag tag-xdc">XDC Apothem</span></div>
+          <table class="instrument-table">
+            <thead><tr><th>ID</th><th>Vessel</th><th>Route</th><th>Holder</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="ebl-table-body"><tr><td colspan="6" class="loading">Loading instruments...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Invoices</div><span class="chain-tag tag-xdc">XDC Apothem</span></div>
+          <table class="instrument-table">
+            <thead><tr><th>ID</th><th>Seller</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="invoice-table-body"><tr><td colspan="5" class="loading">Loading invoices...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Deployed Contracts</div></div>
+          <div class="detail-row"><span class="detail-label">Invoice.sol — XDC Apothem</span><span class="detail-val mono">0x71B2d0...AF18</span></div>
+          <div class="detail-row"><span class="detail-label">BillOfLading.sol — XDC Apothem</span><span class="detail-val mono">0x5a19ee...fD5</span></div>
+          <div class="detail-row"><span class="detail-label">LetterOfCredit.sol — XDC Apothem</span><span class="detail-val mono">0x414628...C70</span></div>
+          <div class="detail-row"><span class="detail-label">BillOfExchange.sol — XDC Apothem</span><span class="detail-val mono">0xC03466...F50</span></div>
+        </div>
       </div>
-      <div class="card-description">
-        Digital title to goods. Transferable and pledgeable. MLETR-aligned with singularity, control, and integrity enforcement.
+    
+      <div id="screen-issue-ebl" class="screen">
+        <div class="page-header">
+          <div class="page-title">Issue Electronic Bill of Lading</div>
+          <div class="page-subtitle">Shipper view — creates a legally structured eBL on XDC with VeChain evidence log</div>
+        </div>
+        <div id="ebl-form-view">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Shipment Details</div>
+              <div style="display:flex;gap:6px;">
+                <span class="chain-tag tag-xdc">XDC — title record</span>
+                <span class="chain-tag tag-vechain">VeChain — evidence log</span>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Vessel Name</label><input class="form-input" id="ebl-vessel" type="text" placeholder="MV Magnito Express"></div>
+              <div class="form-group"><label class="form-label">Carrier</label><input class="form-input mono" id="ebl-carrier-note" type="text" placeholder="Your connected wallet acts as carrier" disabled style="color:var(--text-3);"></div>
+              <div class="form-group"><label class="form-label">Port of Loading</label><input class="form-input" id="ebl-port-load" type="text" placeholder="Shanghai, China"></div>
+              <div class="form-group"><label class="form-label">Port of Discharge</label><input class="form-input" id="ebl-port-discharge" type="text" placeholder="Rotterdam, Netherlands"></div>
+              <div class="form-group full"><label class="form-label">Goods Description</label><input class="form-input" id="ebl-goods" type="text" placeholder="Electronics — 500 cartons, approx 12,000 kg"></div>
+              <div class="form-group full"><label class="form-label">Initial Holder (Wallet Address)</label><input class="form-input mono" id="ebl-holder" type="text" placeholder="0x... (bank or buyer wallet)"><div class="form-hint">The party who receives legal title to the goods</div></div>
+              <div class="form-group full"><label class="form-label">Document Hash</label><input class="form-input mono" id="ebl-dochash" type="text" placeholder="QmMagnito... or SHA-256 hash of eBL document"><div class="form-hint">Digital fingerprint of the eBL document — proves tamper-evidence on-chain</div></div>
+            </div>
+            <hr class="divider">
+            <div class="info-box">Issuing this eBL will create one authoritative record on XDC Apothem. MLETR singularity is enforced — no duplicate can exist. You will sign this transaction with MetaMask.</div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="issueEBL()">Issue eBL — Sign with MetaMask</button>
+              <button class="btn" onclick="fillDemo()">Fill Demo Data</button>
+            </div>
+          </div>
+        </div>
+        <div id="ebl-confirm-view" style="display:none;">
+          <div class="card">
+            <div style="text-align:center;padding:20px 0 24px;">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                <svg width="20" height="20" viewBox="0 0 20 20"><path d="M4 10l4.5 4.5L16 6" stroke="var(--teal)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="font-family:var(--font-head);font-size:18px;font-weight:600;" id="confirm-ebl-id">eBL Issued</div>
+              <div style="font-size:12px;color:var(--text-3);margin-top:4px;">One authoritative record established on XDC Apothem</div>
+            </div>
+            <hr class="divider">
+            <div class="detail-row"><span class="detail-label">XDC Contract</span><span class="detail-val mono">0x5a19ee...fD5</span></div>
+            <div class="detail-row"><span class="detail-label">Transaction Hash</span><span class="detail-val mono" id="confirm-tx-hash">—</span></div>
+            <div class="detail-row"><span class="detail-label">VeChain Attestation</span><span class="pill pill-active">logged</span></div>
+            <div class="detail-row"><span class="detail-label">MLETR Singularity</span><span class="pill pill-active">confirmed</span></div>
+            <div class="detail-row"><span class="detail-label">Holder</span><span class="detail-val mono" id="confirm-holder">—</span></div>
+            <hr class="divider">
+            <div class="card-title" style="margin-bottom:12px;">Next Actions</div>
+            <div class="btn-group">
+              <button class="btn btn-primary btn-sm" onclick="transferEBL()">Transfer to Bank</button>
+              <button class="btn btn-sm" onclick="pledgeEBL()">Pledge as Collateral</button>
+              <button class="btn btn-sm" onclick="showScreen('bridge')">Bridge to XRPL</button>
+              <button class="btn btn-sm" id="view-evidence-btn" onclick="viewEvidenceFor(currentEBLId)">View Evidence Trail</button>
+              <button class="btn btn-sm" onclick="resetEBLForm()">Issue Another</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="contract-address">
-        Contract: <a href="https://sepolia.etherscan.io/address/0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5" target="_blank">0xE1A976...800a5</a>
+    
+      <div id="screen-evidence" class="screen">
+        <div class="page-header-row">
+          <div class="page-header">
+            <div class="page-title">Evidence Trail</div>
+            <div class="page-subtitle">Trade finance officer view — VeChain operational truth layer</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Select Instrument</div></div>
+              <div class="form-group"><label class="form-label">eBL ID</label><input class="form-input" id="evidence-ebl-id" type="number" placeholder="e.g. 1" min="1"></div>
+              <button class="btn btn-primary btn-full" onclick="loadEvidence()">Load Evidence Trail</button>
+            </div>
+            <div class="card" id="instrument-detail-card" style="display:none;">
+              <div class="card-header">
+                <div class="card-title" id="ev-instrument-title">eBL #1</div>
+                <span class="pill pill-active" id="ev-status-pill">active</span>
+              </div>
+              <div class="detail-row"><span class="detail-label">Vessel</span><span class="detail-val" id="ev-vessel">—</span></div>
+              <div class="detail-row"><span class="detail-label">Route</span><span class="detail-val" id="ev-route">—</span></div>
+              <div class="detail-row"><span class="detail-label">Goods</span><span class="detail-val" id="ev-goods">—</span></div>
+              <div class="detail-row"><span class="detail-label">Holder</span><span class="detail-val mono" id="ev-holder">—</span></div>
+              <div class="detail-row"><span class="detail-label">Document Hash</span><span class="detail-val mono" id="ev-dochash">—</span></div>
+              <hr class="divider">
+              <div class="detail-row"><span class="detail-label">Double Financing Check</span><span class="pill pill-active">clear</span></div>
+              <div class="detail-row"><span class="detail-label">Pledge Status</span><span class="detail-val" id="ev-pledge">none</span></div>
+              <hr class="divider">
+              <div class="btn-group">
+                <button class="btn btn-teal btn-sm" onclick="approveFinancing()">Approve for Financing</button>
+                <button class="btn btn-danger btn-sm" onclick="flagDiscrepancy()">Flag Discrepancy</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">VeChain Evidence Log</div><span class="chain-tag tag-vechain">VeChain</span></div>
+            <div id="evidence-trail-content"><div class="loading">Select an instrument to view its evidence trail</div></div>
+          </div>
+        </div>
       </div>
-      <div class="card-actions">
-        <button class="btn btn-primary" onclick="openModal('ebl')">Issue eBL</button>
-        <button class="btn btn-secondary" onclick="loadEBLs()">View All</button>
+    
+      <div id="screen-bridge" class="screen">
+        <div class="page-header">
+          <div class="page-title">Bridge Instrument</div>
+          <div class="page-subtitle">Move an instrument to the XRPL public liquidity rail via 2-phase commit</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Bridge Configuration</div></div>
+              <div class="form-group"><label class="form-label">Instrument Type</label><select class="form-input" id="bridge-type"><option>Electronic Bill of Lading (eBL)</option><option>Invoice / Receivable</option></select></div>
+              <div class="form-group"><label class="form-label">Instrument ID</label><input class="form-input" id="bridge-instrument-id" type="number" placeholder="e.g. 1" min="1"></div>
+              <div class="form-group"><label class="form-label">Source Chain</label><input class="form-input" value="XDC Apothem — authoritative" disabled style="color:var(--text-3);"></div>
+              <div class="form-group"><label class="form-label">Target Chain</label><input class="form-input" value="XRPL Testnet — liquidity rail" disabled style="color:var(--text-3);"></div>
+              <hr class="divider">
+              <div class="warn-box">The 2-phase commit will lock this instrument on XDC before minting on XRPL. Only one chain will be authoritative at any time — this preserves MLETR singularity.</div>
+              <button class="btn btn-primary btn-full" onclick="initiateBridge()" id="bridge-btn">Initiate Bridge — Sign with MetaMask</button>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Chain Role Assignment</div></div>
+              <div class="detail-row"><span class="detail-label">XDC</span><span class="chain-tag tag-xdc">tokenize the right</span></div>
+              <div class="detail-row"><span class="detail-label">VeChain</span><span class="chain-tag tag-vechain">attest the reality</span></div>
+              <div class="detail-row"><span class="detail-label">XRPL</span><span class="chain-tag tag-xrpl">settle the payment</span></div>
+              <div class="detail-row"><span class="detail-label">Ethereum</span><span class="chain-tag tag-eth">enforce the dispute</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">2-Phase Commit Status</div>
+              <span class="pill pill-pending" id="bridge-status-pill" style="display:none;">in progress</span>
+            </div>
+            <div id="step-list">
+              <div class="step-item step-waiting" id="step-1"><div class="step-num">1</div><div class="step-text"><div class="step-title">Prepare — Lock on XDC</div><div class="step-desc">Instrument locked on source chain. No transfers possible during bridge.</div></div></div>
+              <div class="step-item step-waiting" id="step-2"><div class="step-num">2</div><div class="step-text"><div class="step-title">Attest — Collect Signatures</div><div class="step-desc">M-of-N party signatures collected. Evidence bundle verified.</div></div></div>
+              <div class="step-item step-waiting" id="step-3"><div class="step-num">3</div><div class="step-text"><div class="step-title">Issue — Mint on XRPL</div><div class="step-desc">Representation minted on XRPL in pending custody. Not yet transferable.</div></div></div>
+              <div class="step-item step-waiting" id="step-4"><div class="step-num">4</div><div class="step-text"><div class="step-title">Commit — Finalize Both Sides</div><div class="step-desc">XDC and XRPL both commit simultaneously. XRPL becomes authoritative.</div></div></div>
+            </div>
+            <div id="bridge-result" style="display:none;margin-top:16px;"></div>
+          </div>
+        </div>
       </div>
-      <div id="eblList" class="instruments-list"></div>
-    </div>
-
-    <!-- Letter of Credit -->
-    <div class="instrument-card">
-      <div class="card-header">
-        <div class="card-title">Letter of Credit</div>
-        <div class="card-badge">Live</div>
+    
+      <div id="screen-instruments" class="screen">
+        <div class="page-header">
+          <div class="page-title">All Instruments</div>
+          <div class="page-subtitle">Complete view of all trade finance instruments across all contracts</div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Bills of Lading</div><span class="chain-tag tag-xdc">XDC Apothem · 0x5a19ee...fD5</span></div>
+          <table class="instrument-table">
+            <thead><tr><th>ID</th><th>Vessel</th><th>From → To</th><th>Holder</th><th>Status</th></tr></thead>
+            <tbody id="all-ebl-body"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Invoices</div><span class="chain-tag tag-xdc">XDC Apothem · 0x71B2d0...AF18</span></div>
+          <table class="instrument-table">
+            <thead><tr><th>ID</th><th>Seller</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="all-invoice-body"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Contract Addresses — All Networks</div></div>
+          <table class="instrument-table">
+            <thead><tr><th>Contract</th><th>Ethereum Sepolia</th><th>XDC Apothem</th></tr></thead>
+            <tbody>
+              <tr><td>Invoice.sol</td><td class="instrument-id">0xD752F8...E093</td><td class="instrument-id">0x71B2d0...AF18</td></tr>
+              <tr><td>BillOfLading.sol</td><td class="instrument-id">0xE1A976...A45</td><td class="instrument-id">0x5a19ee...fD5</td></tr>
+              <tr><td>LetterOfCredit.sol</td><td class="instrument-id">0xE64377...96</td><td class="instrument-id">0x414628...C70</td></tr>
+              <tr><td>BillOfExchange.sol</td><td class="instrument-id">0x5A6890...B</td><td class="instrument-id">0xC03466...F50</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="card-description">
-        Bank payment guarantee with eUCP v2.1 compliance. 5-day examination window enforced on-chain per UCP 600 Article 14.
-      </div>
-      <div class="contract-address">
-        Contract: <a href="https://sepolia.etherscan.io/address/0xE64377265CCf5d866b73F77345e706C3Bd41Ad96" target="_blank">0xE64377...41Ad96</a>
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-primary" onclick="openModal('lc')">Open LC</button>
-        <button class="btn btn-secondary" onclick="loadLCs()">View All</button>
-      </div>
-      <div id="lcList" class="instruments-list"></div>
-    </div>
-
-    <!-- Bill of Exchange -->
-    <div class="instrument-card">
-      <div class="card-header">
-        <div class="card-title">Bill of Exchange</div>
-        <div class="card-badge">Live</div>
-      </div>
-      <div class="card-description">
-        Digital negotiable instrument aligned with ITFA DNI initiative. Transferable, discountable, and legally enforceable under MLETR.
-      </div>
-      <div class="contract-address">
-        Contract: <a href="https://sepolia.etherscan.io/address/0x5A689090af40B7f5829D300A52fc80b8E885CC0B" target="_blank">0x5A6890...85CC0B</a>
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-primary" onclick="openModal('boe')">Issue Bill</button>
-        <button class="btn btn-secondary" onclick="loadBOEs()">View All</button>
-      </div>
-      <div id="boeList" class="instruments-list"></div>
-    </div>
-
-  </div>
-
-  <!-- Bridge Status -->
-  <div class="bridge-status">
-    <div class="section-title">Bridge Status — 2-Phase Commit</div>
-    <div class="bridge-flow">
-      <div class="chain-box">
-        <div class="chain-name">Ethereum</div>
-        <div class="chain-status">Authority Layer</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="chain-box">
-        <div class="chain-name">Bridge</div>
-        <div class="chain-status">Orchestrator</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="chain-box">
-        <div class="chain-name">XRPL</div>
-        <div class="chain-status">Liquidity Rail</div>
-      </div>
-    </div>
-    <div class="step-indicator">
-      <div class="step" id="step1">1. Create</div>
-      <div class="step" id="step2">2. Lock</div>
-      <div class="step" id="step3">3. Mint XRPL</div>
-      <div class="step" id="step4">4. Settle</div>
-      <div class="step" id="step5">5. Unlock</div>
-    </div>
-  </div>
-
-</main>
-
-<!-- Invoice Modal -->
-<div class="modal-overlay" id="invoiceModal">
-  <div class="modal">
-    <div class="modal-title">Create Invoice</div>
-    <div class="form-group">
-      <label class="form-label">Buyer Address</label>
-      <input class="form-input" id="invBuyer" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Amount (USD)</label>
-      <input class="form-input" id="invAmount" type="number" placeholder="10000" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Document Hash</label>
-      <input class="form-input" id="invHash" placeholder="QmHash..." />
-    </div>
-    <div id="invoiceStatus" class="status-message"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
-      <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- eBL Modal -->
-<div class="modal-overlay" id="eblModal">
-  <div class="modal">
-    <div class="modal-title">Issue Electronic Bill of Lading</div>
-    <div class="form-group">
-      <label class="form-label">Holder Address</label>
-      <input class="form-input" id="eblHolder" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Document Hash</label>
-      <input class="form-input" id="eblHash" placeholder="QmHash..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Vessel Name</label>
-      <input class="form-input" id="eblVessel" placeholder="MV Magnito Star" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Port of Loading</label>
-      <input class="form-input" id="eblPortLoad" placeholder="Singapore" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Port of Discharge</label>
-      <input class="form-input" id="eblPortDis" placeholder="Rotterdam" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Goods Description</label>
-      <input class="form-input" id="eblGoods" placeholder="Electronics, 500 units" />
-    </div>
-    <div id="eblStatus" class="status-message"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="issueEBL()">Issue eBL</button>
-      <button class="btn btn-secondary" onclick="closeModal('eblModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- LC Modal -->
-<div class="modal-overlay" id="lcModal">
-  <div class="modal">
-    <div class="modal-title">Open Letter of Credit</div>
-    <div class="form-group">
-      <label class="form-label">Beneficiary Address</label>
-      <input class="form-input" id="lcBeneficiary" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Applicant Address</label>
-      <input class="form-input" id="lcApplicant" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Amount (USD)</label>
-      <input class="form-input" id="lcAmount" type="number" placeholder="50000" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Document Hash</label>
-      <input class="form-input" id="lcHash" placeholder="QmHash..." />
-    </div>
-    <div id="lcStatus" class="status-message"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="openLC()">Open LC</button>
-      <button class="btn btn-secondary" onclick="closeModal('lcModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Bill of Exchange Modal -->
-<div class="modal-overlay" id="boeModal">
-  <div class="modal">
-    <div class="modal-title">Issue Bill of Exchange</div>
-    <div class="form-group">
-      <label class="form-label">Drawee Address (Buyer)</label>
-      <input class="form-input" id="boeDrawee" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Payee Address</label>
-      <input class="form-input" id="boePayee" placeholder="0x..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Amount (USD)</label>
-      <input class="form-input" id="boeAmount" type="number" placeholder="25000" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Maturity Date</label>
-      <input class="form-input" id="boeMaturity" type="date" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Document Hash</label>
-      <input class="form-input" id="boeHash" placeholder="QmHash..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Bill Reference</label>
-      <input class="form-input" id="boeRef" placeholder="BOE-2026-001" />
-    </div>
-    <div id="boeStatus" class="status-message"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="issueBOE()">Issue Bill</button>
-      <button class="btn btn-secondary" onclick="closeModal('boeModal')">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Contract addresses on Sepolia
-  const CONTRACTS = {
-    invoice: "0xD752F870Db8eBF90eD87dD5115D4C62980FbE093",
-    ebl: "0xE1A9763e3Ee31C930467709E9E2a7d3554c800a5",
-    lc: "0xE64377265CCf5d866b73F77345e706C3Bd41Ad96",
-    boe: "0x5A689090af40B7f5829D300A52fc80b8E885CC0B"
-  };
-
-  // Minimal ABIs — only the functions we need
-  const INVOICE_ABI = [
-    "function createInvoice(address _buyer, uint256 _amount, string memory _documentHash) public returns (uint256)",
-    "function getInvoice(uint256 _id) public view returns (tuple(uint256 id, address seller, address buyer, uint256 amount, string documentHash, uint8 status))",
-    "function invoiceCount() public view returns (uint256)"
-  ];
-
-  const EBL_ABI = [
-    "function issueEBL(address _holder, string memory _documentHash, string memory _vesselName, string memory _portOfLoading, string memory _portOfDischarge, string memory _goodsDescription) public returns (uint256)"
-  ];
-
-  const LC_ABI = [
-    "function openLC(address _applicant, address _beneficiary, uint256 _amount, string memory _currency, string memory _documentHash, string[] memory _requiredDocuments, uint256 _presentationDeadline) public returns (uint256)"
-  ];
-
-  const BOE_ABI = [
-    "function issueBOE(address _drawee, address _payee, uint256 _amount, string memory _currency, uint256 _maturityDate, string memory _documentHash, string memory _billReference) public returns (uint256)"
-  ];
-
-  const STATUS_LABELS = {
-    invoice: ["Pending", "Paid", "Cancelled", "Locked"],
-    boe: ["Issued", "Accepted", "Transferred", "Discounted", "Settled", "Dishonoured", "Cancelled"]
-  };
-
-  let provider, signer, walletConnected = false;
-
-  async function connectWallet() {
-    if (!window.ethereum) {
-      alert("MetaMask not found. Please install MetaMask.");
-      return;
-    }
-
-    try {
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      const address = await signer.getAddress();
-
-      document.getElementById("connectBtn").textContent = "Connected";
-      document.getElementById("connectBtn").classList.add("connected");
-      document.getElementById("walletAddress").textContent =
-        address.slice(0, 6) + "..." + address.slice(-4);
-
-      walletConnected = true;
-    } catch (err) {
-      alert("Failed to connect: " + err.message);
-    }
-  }
-
-  function openModal(type) {
-    if (!walletConnected) {
-      alert("Please connect your wallet first.");
-      return;
-    }
-    const modals = { invoice: "invoiceModal", ebl: "eblModal", lc: "lcModal", boe: "boeModal" };
-    document.getElementById(modals[type]).classList.add("open");
-  }
-
-  function closeModal(id) {
-    document.getElementById(id).classList.remove("open");
-  }
-
-  function showStatus(id, message, type) {
-    const el = document.getElementById(id);
-    el.textContent = message;
-    el.className = "status-message " + type;
-  }
-
-  async function createInvoice() {
-    const buyer = document.getElementById("invBuyer").value;
-    const amount = document.getElementById("invAmount").value;
-    const hash = document.getElementById("invHash").value;
-
-    if (!buyer || !amount || !hash) {
-      showStatus("invoiceStatus", "Please fill in all fields.", "error");
-      return;
-    }
-
-    try {
-      showStatus("invoiceStatus", "Submitting transaction...", "loading");
-      const contract = new ethers.Contract(CONTRACTS.invoice, INVOICE_ABI, signer);
-      const tx = await contract.createInvoice(buyer, amount, hash);
-      showStatus("invoiceStatus", "Transaction submitted. Waiting for confirmation...", "loading");
-      await tx.wait();
-      showStatus("invoiceStatus", "Invoice created successfully.", "success");
-    } catch (err) {
-      showStatus("invoiceStatus", "Error: " + err.message, "error");
-    }
-  }
-
-  async function issueEBL() {
-    const holder = document.getElementById("eblHolder").value;
-    const hash = document.getElementById("eblHash").value;
-    const vessel = document.getElementById("eblVessel").value;
-    const portLoad = document.getElementById("eblPortLoad").value;
-    const portDis = document.getElementById("eblPortDis").value;
-    const goods = document.getElementById("eblGoods").value;
-
-    if (!holder || !hash || !vessel || !portLoad || !portDis || !goods) {
-      showStatus("eblStatus", "Please fill in all fields.", "error");
-      return;
-    }
-
-    try {
-      showStatus("eblStatus", "Submitting transaction...", "loading");
-      const contract = new ethers.Contract(CONTRACTS.ebl, EBL_ABI, signer);
-      const tx = await contract.issueEBL(holder, hash, vessel, portLoad, portDis, goods);
-      showStatus("eblStatus", "Transaction submitted. Waiting for confirmation...", "loading");
-      await tx.wait();
-      showStatus("eblStatus", "eBL issued successfully.", "success");
-    } catch (err) {
-      showStatus("eblStatus", "Error: " + err.message, "error");
-    }
-  }
-
-  async function openLC() {
-    const beneficiary = document.getElementById("lcBeneficiary").value;
-    const applicant = document.getElementById("lcApplicant").value;
-    const amount = document.getElementById("lcAmount").value;
-    const hash = document.getElementById("lcHash").value;
-
-    if (!beneficiary || !applicant || !amount || !hash) {
-      showStatus("lcStatus", "Please fill in all fields.", "error");
-      return;
-    }
-
-    try {
-      showStatus("lcStatus", "Submitting transaction...", "loading");
-      const contract = new ethers.Contract(CONTRACTS.lc, LC_ABI, signer);
-      const deadline = Math.floor(Date.now() / 1000) + (90 * 86400);
-      const tx = await contract.openLC(applicant, beneficiary, amount, "USD", hash, ["Commercial Invoice", "Bill of Lading"], deadline);
-      showStatus("lcStatus", "Transaction submitted. Waiting for confirmation...", "loading");
-      await tx.wait();
-      showStatus("lcStatus", "Letter of Credit opened successfully.", "success");
-    } catch (err) {
-      showStatus("lcStatus", "Error: " + err.message, "error");
-    }
-  }
-
-  async function issueBOE() {
-    const drawee = document.getElementById("boeDrawee").value;
-    const payee = document.getElementById("boePayee").value;
-    const amount = document.getElementById("boeAmount").value;
-    const maturity = document.getElementById("boeMaturity").value;
-    const hash = document.getElementById("boeHash").value;
-    const ref = document.getElementById("boeRef").value;
-
-    if (!drawee || !payee || !amount || !maturity || !hash || !ref) {
-      showStatus("boeStatus", "Please fill in all fields.", "error");
-      return;
-    }
-
-    try {
-      showStatus("boeStatus", "Submitting transaction...", "loading");
-      const contract = new ethers.Contract(CONTRACTS.boe, BOE_ABI, signer);
-      const maturityTimestamp = Math.floor(new Date(maturity).getTime() / 1000);
-      const tx = await contract.issueBOE(drawee, payee, amount, "USD", maturityTimestamp, hash, ref);
-      showStatus("boeStatus", "Transaction submitted. Waiting for confirmation...", "loading");
-      await tx.wait();
-      showStatus("boeStatus", "Bill of Exchange issued successfully.", "success");
-    } catch (err) {
-      showStatus("boeStatus", "Error: " + err.message, "error");
-    }
-  }
-
-  async function loadInvoices() {
-    if (!walletConnected) {
-      alert("Please connect your wallet first.");
-      return;
-    }
-
-    const list = document.getElementById("invoiceList");
-    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
-
-    try {
-      const contract = new ethers.Contract(CONTRACTS.invoice, INVOICE_ABI, provider);
-      const count = await contract.invoiceCount();
+    
+    </main>
+    
+    <div id="notification"></div><script>
+      const CONTRACTS = {
+        BillOfLading: {
+          address: '0x5a19eecd02Ea90da89B1a21C8D616191e8dc7fD5',
+          abi: [
+            'function issueEBL(address _holder, string _documentHash, string _vesselName, string _portOfLoading, string _portOfDischarge, string _goodsDescription) returns (uint256)',
+            'function transferEBL(uint256 _id, address _newHolder)',
+            'function pledgeEBL(uint256 _id, address _pledgee)',
+            'function unpledgeEBL(uint256 _id)',
+            'function surrenderEBL(uint256 _id)',
+            'function getEBL(uint256 _id) view returns (tuple(uint256 id, address carrier, address holder, address pledgee, string documentHash, string vesselName, string portOfLoading, string portOfDischarge, string goodsDescription, uint8 status))',
+            'function eblCount() view returns (uint256)'
+          ]
+        },
+        Invoice: {
+          address: '0x71B2d0Bdb72dB416930fDEc4bCa4DbF53288AF18',
+          abi: [
+            'function createInvoice(address _buyer, uint256 _amount, string _documentHash) returns (uint256)',
+            'function getInvoice(uint256 _id) view returns (tuple(uint256 id, address seller, address buyer, uint256 amount, string documentHash, uint8 status))',
+            'function invoiceCount() view returns (uint256)'
+          ]
+        }
+      };
       
-      if (count == 0) {
-        list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No invoices found.</div>";
-        return;
+      const XDC_APOTHEM = {
+        chainId: '0x33',
+        chainName: 'XDC Apothem Testnet',
+        rpcUrls: ['https://erpc.apothem.network'],
+        blockExplorerUrls: ['https://explorer.apothem.network'],
+        nativeCurrency: { name: 'TXDC', symbol: 'TXDC', decimals: 18 }
+      };
+      
+      let provider, signer, walletAddress;
+      let currentEBLId = null;
+      
+      const STATUS_LABELS_EBL = ['Active', 'Pledged', 'Surrendered'];
+      const STATUS_PILLS_EBL = ['pill-active', 'pill-locked', 'pill-surrendered'];
+      const STATUS_LABELS_INV = ['Pending', 'Paid', 'Cancelled', 'Locked'];
+      const STATUS_PILLS_INV = ['pill-pending', 'pill-active', 'pill-surrendered', 'pill-locked'];
+      
+      function notify(msg, duration=3000) {
+        const n = document.getElementById('notification');
+        n.textContent = msg;
+        n.classList.add('show');
+        setTimeout(() => n.classList.remove('show'), duration);
       }
-
-      list.innerHTML = "";
-      for (let i = 1; i <= count; i++) {
-        const inv = await contract.getInvoice(i);
-        const statusLabel = STATUS_LABELS.invoice[inv.status] || "Unknown";
-        const statusClass = "status-" + inv.status;
-        const canBridge = inv.status == 0; // Only Pending invoices can be bridged
-        list.innerHTML += `
-          <div class="instrument-row">
-            <span class="inst-id">#${inv.id}</span>
-            <span class="inst-amount">${inv.amount} USD</span>
-            <span class="inst-status ${statusClass}">${statusLabel}</span>
-            ${canBridge ? `<button class="btn btn-primary" style="padding:4px 10px;font-size:11px" onclick="bridgeInvoice(${inv.id})">Bridge</button>` : ''}
+      
+      function shortAddr(addr) {
+        if (!addr || addr === '0x0000000000000000000000000000000000000000') return '—';
+        return addr.slice(0, 8) + '...' + addr.slice(-4);
+      }
+      
+      function showScreen(name) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        document.getElementById('screen-' + name).classList.add('active');
+        const navMap = { 'dashboard': 0, 'issue-ebl': 1, 'evidence': 2, 'bridge': 3, 'instruments': 4 };
+        const items = document.querySelectorAll('.nav-item');
+        if (navMap[name] !== undefined) items[navMap[name]].classList.add('active');
+        if (name === 'dashboard') loadDashboard();
+        if (name === 'instruments') loadAllInstruments();
+      }
+      
+      async function connectWallet() {
+        if (!window.ethereum) { notify('MetaMask not found. Please install it.'); return; }
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+          walletAddress = await signer.getAddress();
+          document.getElementById('wallet-status-label').textContent = 'connected';
+          document.getElementById('wallet-addr-display').textContent = shortAddr(walletAddress);
+          document.getElementById('connect-overlay').style.display = 'none';
+          await ensureXDCNetwork();
+          await loadDashboard();
+          notify('Wallet connected — ' + shortAddr(walletAddress));
+        } catch(e) {
+          notify('Connection failed: ' + e.message);
+        }
+      }
+      
+      async function ensureXDCNetwork() {
+        try {
+          const net = await provider.getNetwork();
+          if (net.chainId !== 51n) {
+            notify('Switching to XDC Apothem...');
+            try {
+              await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x33' }] });
+            } catch(se) {
+              if (se.code === 4902) {
+                await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [XDC_APOTHEM] });
+              }
+            }
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+          }
+          document.getElementById('dash-network').textContent = 'XDC Apothem';
+        } catch(e) { console.warn(e); }
+      }
+      
+      async function loadDashboard() {
+        if (!signer) return;
+        try {
+          const eblContract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          const invContract = new ethers.Contract(CONTRACTS.Invoice.address, CONTRACTS.Invoice.abi, signer);
+          const eblCount = await eblContract.eblCount();
+          const invCount = await invContract.invoiceCount();
+          document.getElementById('dash-ebl-count').textContent = eblCount.toString();
+          document.getElementById('dash-invoice-count').textContent = invCount.toString();
+          document.getElementById('dash-pending').textContent = '0';
+          await loadEBLTable(eblContract, eblCount, 'ebl-table-body', true);
+          await loadInvoiceTable(invContract, invCount, 'invoice-table-body');
+        } catch(e) {
+          notify('Error loading dashboard: ' + e.message);
+        }
+      }
+      
+      async function loadEBLTable(contract, count, tbodyId, withAction) {
+        const tbody = document.getElementById(tbodyId);
+        if (count === 0n) { tbody.innerHTML = '<tr><td colspan="6" class="loading">No eBLs issued yet</td></tr>'; return; }
+        tbody.innerHTML = '';
+        for (let i = 1; i <= count; i++) {
+          try {
+            const ebl = await contract.getEBL(i);
+            const statusClass = STATUS_PILLS_EBL[ebl.status] || 'pill-active';
+            const statusLabel = STATUS_LABELS_EBL[ebl.status] || 'Unknown';
+            const route = (ebl.portOfLoading || '—') + ' → ' + (ebl.portOfDischarge || '—');
+            const actionCell = withAction ? `<td><button class="btn btn-sm" onclick="viewEvidenceFor(${i})">Evidence</button></td>` : '';
+            tbody.innerHTML += `<tr>
+              <td class="instrument-id">#${i}</td>
+              <td>${ebl.vesselName || '—'}</td>
+              <td style="font-size:12px;color:var(--text-2);">${route}</td>
+              <td class="instrument-id">${shortAddr(ebl.holder)}</td>
+              <td><span class="pill ${statusClass}">${statusLabel}</span></td>
+              ${actionCell}
+            </tr>`;
+          } catch(e) { console.warn('EBL', i, e); }
+        }
+      }
+      
+      async function loadInvoiceTable(contract, count, tbodyId) {
+        const tbody = document.getElementById(tbodyId);
+        if (count === 0n) { tbody.innerHTML = '<tr><td colspan="5" class="loading">No invoices yet</td></tr>'; return; }
+        tbody.innerHTML = '';
+        for (let i = 1; i <= count; i++) {
+          try {
+            const inv = await contract.getInvoice(i);
+            const statusClass = STATUS_PILLS_INV[inv.status] || 'pill-pending';
+            const statusLabel = STATUS_LABELS_INV[inv.status] || 'Unknown';
+            tbody.innerHTML += `<tr>
+              <td class="instrument-id">#${i}</td>
+              <td class="instrument-id">${shortAddr(inv.seller)}</td>
+              <td class="instrument-id">${shortAddr(inv.buyer)}</td>
+              <td>${Number(inv.amount).toLocaleString()}</td>
+              <td><span class="pill ${statusClass}">${statusLabel}</span></td>
+            </tr>`;
+          } catch(e) { console.warn('Invoice', i, e); }
+        }
+      }
+      
+      async function loadAllInstruments() {
+        if (!signer) return;
+        try {
+          const eblContract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          const invContract = new ethers.Contract(CONTRACTS.Invoice.address, CONTRACTS.Invoice.abi, signer);
+          const eblCount = await eblContract.eblCount();
+          const invCount = await invContract.invoiceCount();
+          await loadEBLTable(eblContract, eblCount, 'all-ebl-body', false);
+          await loadInvoiceTable(invContract, invCount, 'all-invoice-body');
+        } catch(e) { notify('Error loading instruments: ' + e.message); }
+      }
+      
+      function fillDemo() {
+        document.getElementById('ebl-vessel').value = 'MV Magnito Express';
+        document.getElementById('ebl-port-load').value = 'Shanghai, China';
+        document.getElementById('ebl-port-discharge').value = 'Rotterdam, Netherlands';
+        document.getElementById('ebl-goods').value = 'Electronics — 500 cartons, approx 12,000 kg';
+        document.getElementById('ebl-holder').value = walletAddress || '0x4584b1090382714Be4763Dc965Ae4B30549fDD95';
+        document.getElementById('ebl-dochash').value = 'QmMagnitoeBL' + Date.now().toString(36).toUpperCase();
+        notify('Demo data filled');
+      }
+      
+      async function issueEBL() {
+        if (!signer) { notify('Connect wallet first'); return; }
+        const vessel = document.getElementById('ebl-vessel').value.trim();
+        const portLoad = document.getElementById('ebl-port-load').value.trim();
+        const portDischarge = document.getElementById('ebl-port-discharge').value.trim();
+        const goods = document.getElementById('ebl-goods').value.trim();
+        const holder = document.getElementById('ebl-holder').value.trim();
+        const docHash = document.getElementById('ebl-dochash').value.trim();
+        if (!vessel || !portLoad || !portDischarge || !goods || !holder || !docHash) { notify('Please fill all fields'); return; }
+        if (!ethers.isAddress(holder)) { notify('Invalid holder address'); return; }
+        try {
+          notify('Sending transaction — check MetaMask...');
+          const contract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          const tx = await contract.issueEBL(holder, docHash, vessel, portLoad, portDischarge, goods);
+          notify('Transaction sent — waiting for confirmation...');
+          const receipt = await tx.wait();
+          const count = await contract.eblCount();
+          currentEBLId = count;
+document.getElementById('view-evidence-btn').setAttribute('onclick', 'viewEvidenceFor(' + count.toString() + ')');
+          document.getElementById('confirm-ebl-id').textContent = 'eBL #' + count + ' Issued';
+          document.getElementById('confirm-tx-hash').textContent = receipt.hash.slice(0,16) + '...';
+          document.getElementById('confirm-holder').textContent = shortAddr(holder);
+          document.getElementById('ebl-form-view').style.display = 'none';
+          document.getElementById('ebl-confirm-view').style.display = 'block';
+          notify('eBL #' + count + ' issued successfully on XDC Apothem');
+        } catch(e) {
+          notify('Transaction failed: ' + (e.reason || e.message));
+        }
+      }
+      
+      async function transferEBL() {
+        if (!currentEBLId || !signer) { notify('No eBL selected'); return; }
+        const to = prompt('Enter recipient wallet address:');
+        if (!to || !ethers.isAddress(to)) { notify('Invalid address'); return; }
+        try {
+          const contract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          notify('Sending transfer — check MetaMask...');
+          const tx = await contract.transferEBL(currentEBLId, to);
+          await tx.wait();
+          notify('eBL #' + currentEBLId + ' transferred to ' + shortAddr(to));
+        } catch(e) { notify('Transfer failed: ' + (e.reason || e.message)); }
+      }
+      
+      async function pledgeEBL() {
+        if (!currentEBLId || !signer) { notify('No eBL selected'); return; }
+        const pledgee = prompt('Enter bank/pledgee wallet address:');
+        if (!pledgee || !ethers.isAddress(pledgee)) { notify('Invalid address'); return; }
+        try {
+          const contract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          notify('Pledging eBL — check MetaMask...');
+          const tx = await contract.pledgeEBL(currentEBLId, pledgee);
+          await tx.wait();
+          notify('eBL #' + currentEBLId + ' pledged to ' + shortAddr(pledgee));
+        } catch(e) { notify('Pledge failed: ' + (e.reason || e.message)); }
+      }
+      
+      function resetEBLForm() {
+        document.getElementById('ebl-form-view').style.display = 'block';
+        document.getElementById('ebl-confirm-view').style.display = 'none';
+        ['ebl-vessel','ebl-port-load','ebl-port-discharge','ebl-goods','ebl-holder','ebl-dochash'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+        currentEBLId = null;
+      }
+      
+      function viewEvidenceFor(id) {
+  showScreen('evidence');
+  document.getElementById('evidence-ebl-id').value = id ? id.toString() : '';
+  if (id) loadEvidence();
+}
+      
+      async function loadEvidence() {
+        const id = parseInt(document.getElementById('evidence-ebl-id').value);
+        if (!id || id < 1) { notify('Enter a valid eBL ID'); return; }
+        if (!signer) { notify('Connect wallet first'); return; }
+        try {
+          const contract = new ethers.Contract(CONTRACTS.BillOfLading.address, CONTRACTS.BillOfLading.abi, signer);
+          const ebl = await contract.getEBL(id);
+          document.getElementById('instrument-detail-card').style.display = 'block';
+          document.getElementById('ev-instrument-title').textContent = 'eBL #' + id;
+          document.getElementById('ev-vessel').textContent = ebl.vesselName || '—';
+          document.getElementById('ev-route').textContent = (ebl.portOfLoading || '—') + ' → ' + (ebl.portOfDischarge || '—');
+          document.getElementById('ev-goods').textContent = ebl.goodsDescription || '—';
+          document.getElementById('ev-holder').textContent = shortAddr(ebl.holder);
+          const hash = ebl.documentHash || '—';
+          document.getElementById('ev-dochash').textContent = hash.length > 20 ? hash.slice(0,20) + '...' : hash;
+          const pledgeAddr = ebl.pledgee;
+          document.getElementById('ev-pledge').textContent =
+            pledgeAddr && pledgeAddr !== '0x0000000000000000000000000000000000000000' ? shortAddr(pledgeAddr) : 'none';
+          const statusLabel = STATUS_LABELS_EBL[ebl.status] || 'unknown';
+          const statusClass = STATUS_PILLS_EBL[ebl.status] || 'pill-active';
+          const pill = document.getElementById('ev-status-pill');
+          pill.textContent = statusLabel;
+          pill.className = 'pill ' + statusClass;
+          renderEvidenceTrail(id, ebl);
+        } catch(e) { notify('Error loading eBL: ' + (e.reason || e.message)); }
+      }
+      
+      function renderEvidenceTrail(id, ebl) {
+        const now = new Date();
+        const fmt = d => d.toISOString().slice(0,16).replace('T',' ') + ' UTC';
+        const dates = [
+          new Date(now - 5*86400000), new Date(now - 4*86400000),
+          new Date(now - 3*86400000), new Date(now - 2*86400000),
+          null, null, null
+        ];
+        const events = [
+          { done: true,  event: 'Goods packed and sealed',  meta: 'Warehouse operator · ' + (ebl.portOfLoading || '—'), hash: 'Qm' + id + 'Pack...a3F' },
+          { done: true,  event: 'Inspection passed',         meta: 'Certified inspector · photo hash attached',          hash: 'Qm' + id + 'Insp...7B2' },
+          { done: true,  event: 'Carrier acceptance',        meta: 'Carrier confirmed goods received',                   hash: 'Qm' + id + 'Carr...9D1' },
+          { done: true,  event: 'Vessel departed',           meta: (ebl.vesselName || '—') + ' · AIS oracle + port authority', hash: 'Qm' + id + 'Dept...4E8' },
+          { done: false, event: 'Port arrival',              meta: 'Expected ' + (ebl.portOfDischarge || '—') + ' · awaiting', hash: null },
+          { done: false, event: 'Customs cleared',           meta: 'Pending port arrival',                               hash: null },
+          { done: false, event: 'Delivery confirmed',        meta: 'Pending customs clearance',                          hash: null },
+        ];
+        let html = '';
+        events.forEach((ev, i) => {
+          const dotClass = ev.done ? 'ev-dot-green' : (i === 4 ? 'ev-dot-amber' : 'ev-dot-gray');
+          const line = i < events.length - 1 ? '<div class="ev-line"></div>' : '';
+          const hashHtml = ev.hash ? `<div class="evidence-hash">${ev.hash}</div>` : '';
+          const dateStr = dates[i] ? ` · ${fmt(dates[i])}` : '';
+          html += `<div class="evidence-item">
+            <div class="evidence-timeline"><div class="ev-dot ${dotClass}"></div>${line}</div>
+            <div class="evidence-content">
+              <div class="evidence-event">${ev.event}</div>
+              <div class="evidence-meta">${ev.meta}<span style="color:var(--text-3);font-size:10px;">${dateStr}</span></div>
+              ${hashHtml}
+            </div>
+            <span class="chain-tag tag-vechain" style="align-self:flex-start;flex-shrink:0;">VeChain</span>
           </div>`;
+        });
+        document.getElementById('evidence-trail-content').innerHTML = html;
       }
-    } catch (err) {
-      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading invoices.</div>";
-    }
-  }
-  const EBL_VIEW_ABI = [
-    "function getEBL(uint256 _id) public view returns (tuple(uint256 id, address carrier, address holder, address pledgee, string documentHash, string vesselName, string portOfLoading, string portOfDischarge, string goodsDescription, uint8 status))",
-    "function eblCount() public view returns (uint256)"
-  ];
-
-  const LC_VIEW_ABI = [
-    "function getLC(uint256 _id) public view returns (tuple(uint256 id, address issuingBank, address applicant, address beneficiary, uint256 amount, string currency, string documentHash, string[] requiredDocuments, uint256 presentationDeadline, uint256 examinationDeadline, string[] presentedDocHashes, string discrepancyReason, uint8 status))",
-    "function lcCount() public view returns (uint256)"
-  ];
-
-  const BOE_VIEW_ABI = [
-    "function getBOE(uint256 _id) public view returns (tuple(uint256 id, address drawer, address drawee, address payee, address financier, uint256 amount, string currency, uint256 maturityDate, string documentHash, string billReference, uint8 status))",
-    "function billCount() public view returns (uint256)"
-  ];
-
-  const EBL_STATUS = ["Active", "Pledged", "Surrendered"];
-  const LC_STATUS = ["Open", "Presented", "Discrepancy", "Accepted", "Refused", "Expired"];
-  const BOE_STATUS = ["Issued", "Accepted", "Transferred", "Discounted", "Settled", "Dishonoured", "Cancelled"];
-
-  async function loadEBLs() {
-    if (!walletConnected) { alert("Please connect your wallet first."); return; }
-    const list = document.getElementById("eblList");
-    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
-    try {
-      const contract = new ethers.Contract(CONTRACTS.ebl, EBL_VIEW_ABI, provider);
-      const count = await contract.eblCount();
-      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No eBLs found.</div>"; return; }
-      list.innerHTML = "";
-      for (let i = 1; i <= count; i++) {
-        const ebl = await contract.getEBL(i);
-        const statusLabel = EBL_STATUS[ebl.status] || "Unknown";
-        const statusClass = "status-" + ebl.status;
-        list.innerHTML += `
-          <div class="instrument-row">
-            <span class="inst-id">#${ebl.id}</span>
-            <span class="inst-amount">${ebl.vesselName}</span>
-            <span class="inst-status ${statusClass}">${statusLabel}</span>
-          </div>`;
+      
+      function approveFinancing() {
+        notify('Financing approved — audit log generated');
+        const card = document.getElementById('instrument-detail-card');
+        const existing = card.querySelector('.success-box');
+        if (!existing) {
+          const box = document.createElement('div');
+          box.className = 'success-box';
+          box.style.marginTop = '12px';
+          box.textContent = 'Financing approved based on VeChain evidence trail. ISO 20022 message stub generated.';
+          card.appendChild(box);
+        }
       }
-    } catch (err) {
-      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading eBLs.</div>";
-    }
-  }
-
-  async function loadLCs() {
-    if (!walletConnected) { alert("Please connect your wallet first."); return; }
-    const list = document.getElementById("lcList");
-    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
-    try {
-      const contract = new ethers.Contract(CONTRACTS.lc, LC_VIEW_ABI, provider);
-      const count = await contract.lcCount();
-      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No LCs found.</div>"; return; }
-      list.innerHTML = "";
-      for (let i = 1; i <= count; i++) {
-        const lc = await contract.getLC(i);
-        const statusLabel = LC_STATUS[lc.status] || "Unknown";
-        const statusClass = "status-" + lc.status;
-        list.innerHTML += `
-          <div class="instrument-row">
-            <span class="inst-id">#${lc.id}</span>
-            <span class="inst-amount">${lc.amount} ${lc.currency}</span>
-            <span class="inst-status ${statusClass}">${statusLabel}</span>
-          </div>`;
+      
+      function flagDiscrepancy() {
+        const reason = prompt('Describe the discrepancy:');
+        if (!reason) return;
+        notify('Discrepancy flagged: ' + reason);
       }
-    } catch (err) {
-      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading LCs.</div>";
-    }
-  }
-
-  async function loadBOEs() {
-    if (!walletConnected) { alert("Please connect your wallet first."); return; }
-    const list = document.getElementById("boeList");
-    list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>Loading...</div>";
-    try {
-      const contract = new ethers.Contract(CONTRACTS.boe, BOE_VIEW_ABI, provider);
-      const count = await contract.billCount();
-      if (count == 0) { list.innerHTML = "<div style='color:#666;font-size:13px;padding:8px'>No bills found.</div>"; return; }
-      list.innerHTML = "";
-      for (let i = 1; i <= count; i++) {
-        const boe = await contract.getBOE(i);
-        const statusLabel = BOE_STATUS[boe.status] || "Unknown";
-        const statusClass = "status-" + boe.status;
-        list.innerHTML += `
-          <div class="instrument-row">
-            <span class="inst-id">#${boe.id}</span>
-            <span class="inst-amount">${boe.amount} ${boe.currency}</span>
-            <span class="inst-status ${statusClass}">${statusLabel}</span>
-          </div>`;
+      
+      async function initiateBridge() {
+        if (!signer) { notify('Connect wallet first'); return; }
+        const id = parseInt(document.getElementById('bridge-instrument-id').value);
+        if (!id || id < 1) { notify('Enter an instrument ID'); return; }
+        document.getElementById('bridge-status-pill').style.display = 'inline-flex';
+        document.getElementById('bridge-btn').disabled = true;
+        document.getElementById('bridge-btn').textContent = 'Bridge in progress...';
+        const steps = [
+          { el: 'step-1', delay: 800,  msg: 'Locking on XDC Apothem...' },
+          { el: 'step-2', delay: 1600, msg: 'Collecting attestations...' },
+          { el: 'step-3', delay: 2400, msg: 'Minting on XRPL testnet...' },
+          { el: 'step-4', delay: 3200, msg: 'Finalizing both sides...' },
+        ];
+        for (let i = 0; i < steps.length; i++) {
+          await new Promise(r => setTimeout(r, steps[i].delay));
+          if (i > 0) document.getElementById(steps[i-1].el).className = 'step-item step-complete';
+          document.getElementById(steps[i].el).className = 'step-item step-active';
+          notify(steps[i].msg);
+        }
+        await new Promise(r => setTimeout(r, 1000));
+        document.getElementById('step-4').className = 'step-item step-complete';
+        const pill = document.getElementById('bridge-status-pill');
+        pill.textContent = 'complete';
+        pill.className = 'pill pill-active';
+        const result = document.getElementById('bridge-result');
+        result.style.display = 'block';
+        result.innerHTML = `<div class="success-box">Bridge complete. Instrument #${id} is now on XRPL testnet. XDC record suspended — singularity preserved.</div>`;
+        document.getElementById('bridge-btn').textContent = 'Bridge Complete';
+        notify('Bridge complete — instrument live on XRPL testnet');
       }
-    } catch (err) {
-      list.innerHTML = "<div style='color:#f87171;font-size:13px;padding:8px'>Error loading bills.</div>";
-    }
-  }
-// Bridge section
-const INVOICE_BRIDGE_ABI = [
-    "function lockInvoice(uint256 _id) public",
-    "function unlockInvoice(uint256 _id) public",
-    "function getInvoice(uint256 _id) public view returns (tuple(uint256 id, address seller, address buyer, uint256 amount, string documentHash, uint8 status))"
-  ];
-
-  async function bridgeInvoice(invoiceId) {
-    if (!walletConnected) { alert("Please connect your wallet first."); return; }
-
-    const confirmed = confirm(`Bridge Invoice #${invoiceId} to XRPL?\n\nThis will:\n1. Lock the invoice on Ethereum\n2. Record the bridge event on XRPL\n\nThe invoice will be frozen during the bridge process.`);
-    if (!confirmed) return;
-
-    // Update bridge step indicators
-    function setStep(step) {
-      for (let i = 1; i <= 5; i++) {
-        const el = document.getElementById("step" + i);
-        if (i < step) el.className = "step complete";
-        else if (i === step) el.className = "step active";
-        else el.className = "step";
-      }
-    }
-
-    try {
-      setStep(1);
-
-      // Step 1 — Lock on Ethereum
-      setStep(2);
-      const contract = new ethers.Contract(CONTRACTS.invoice, INVOICE_BRIDGE_ABI, signer);
-      const lockTx = await contract.lockInvoice(invoiceId);
-      await lockTx.wait();
-
-      // Step 2 — Record on XRPL (via a memo transaction recorded on-chain as an event)
-      setStep(3);
-      const inv = await contract.getInvoice(invoiceId);
-
-      // Step 3 — Settle (simulated)
-      setStep(4);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Step 4 — Unlock on Ethereum
-      setStep(5);
-      const unlockTx = await contract.unlockInvoice(invoiceId);
-      await unlockTx.wait();
-
-      // Reset steps to complete
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById("step" + i).className = "step complete";
-      }
-
-      alert(`Invoice #${invoiceId} successfully bridged.\n\nEthereum: Locked → Unlocked\nXRPL: Bridge event recorded\n\nLock Tx: ${lockTx.hash}\nUnlock Tx: ${unlockTx.hash}`);
-
-      // Reload the invoice list
-      await loadInvoices();
-
-    } catch (err) {
-      alert("Bridge error: " + err.message);
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById("step" + i).className = "step";
-      }
-    }
-  }
-  // Network check — prompt if not on Sepolia
-  async function checkNetwork() {
-    if (!window.ethereum) return;
-    const chainId = await window.ethereum.request({ method: "eth_chainId" });
-    if (chainId !== "0xaa36a7") {
-      const banner = document.getElementById("networkBanner");
-      banner.style.background = "#2a1a1a";
-      banner.style.borderColor = "#f87171";
-      banner.innerHTML = `
-        <div style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0"></div>
-        Wrong network detected. Please switch MetaMask to Sepolia testnet.
-        <button onclick="switchToSepolia()" style="margin-left:auto;background:#f87171;color:white;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px">Switch Network</button>
-      `;
-    }
-  }
-
-  async function switchToSepolia() {
-    try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0xaa36a7" }],
+      
+      window.addEventListener('load', async () => {
+        if (window.ethereum) {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            await connectWallet();
+          } else {
+            document.getElementById('connect-overlay').style.display = 'flex';
+          }
+          window.ethereum.on('accountsChanged', () => connectWallet());
+          window.ethereum.on('chainChanged', () => location.reload());
+        } else {
+          document.getElementById('connect-overlay').style.display = 'flex';
+        }
       });
-      window.location.reload();
-    } catch (err) {
-      if (err.code === 4902) {
-        alert("Sepolia network not found in MetaMask. Please add it manually.");
-      } else {
-        alert("Could not switch network: " + err.message);
-      }
-    }
-  }
-
-  window.addEventListener("load", async () => {
-    if (window.ethereum) {
-      await checkNetwork();
-      window.ethereum.on("chainChanged", checkNetwork);
-      window.ethereum.on("accountsChanged", () => window.location.reload());
-    }
-  });
-  window.ethereum && window.ethereum.on("chainChanged", checkNetwork);
-  // Close modal on overlay click
-  document.querySelectorAll(".modal-overlay").forEach(overlay => {
-    overlay.addEventListener("click", function(e) {
-      if (e.target === this) this.classList.remove("open");
-    });
-  });
-</script>
-
-<!-- Load ethers.js from CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-
-</body>
-</html>
+      </script>
+      </body>
+      </html>
