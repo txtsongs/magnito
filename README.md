@@ -113,11 +113,13 @@ magnito/
 │   ├── LetterOfCredit.sol    # Letter of Credit — 29 tests
 │   └── BillOfExchange.sol    # Bill of Exchange — 34 tests
 ├── bridge/
-│   ├── orchestrator.js       # Chain-agnostic 2PC engine
-│   ├── run-bridge.js         # Live bridge runner
+│   ├── orchestrator.js        # Chain-agnostic 2PC engine
+│   ├── run-bridge.js          # Live bridge runner
 │   └── adapters/
-│       ├── evm-adapter.js    # Covers all EVM chains
-│       └── xrpl-adapter.js   # XRPL testnet adapter
+│       ├── evm-adapter.js     # Covers all EVM chains
+│       ├── xrpl-adapter.js    # XRPL testnet adapter
+│       ├── vechain-adapter.js # VeChain testnet — evidence and attestation (VIP-191 fee delegation)
+│       └── canton-adapter.js  # Canton — legal authority layer via DAML JSON API
 ├── scripts/
 │   ├── deploy.js             # Deployment script
 │   ├── evidence-logger.js    # VeChain evidence bundle logger
@@ -185,8 +187,8 @@ npx hardhat run scripts/deploy.js --network xdcApothem
 - [x] Evidence logger — structured audit bundles per bridge cycle
 - [x] ISO 20022 adapter — pain.001 and camt.054 message stubs
 - [x] Five-screen frontend — dashboard, issue eBL, evidence trail, bridge, all instruments
-- [ ] VeChain adapter — evidence and attestation layer
-- [ ] Canton / DAML adapter — legal authority layer (requires DAML developer)
+- [x] VeChain adapter — evidence and attestation layer (VIP-191 fee delegation, seven shipping event types)
+- [x] Canton / DAML adapter — legal authority layer via DAML JSON API (awaits deployed DAML model)
 - [ ] XRPL Foundation grant application — Spring 2026
 - [ ] ICC DSI certification research
 - [ ] Legal documentation — Singapore MLETR legal opinion
@@ -213,8 +215,8 @@ npx hardhat run scripts/deploy.js --network xdcApothem
 - [Ethers.js](https://ethers.org/) — Ethereum and EVM library
 - [XDC Network](https://xdc.org/) — Trade finance native blockchain
 - [XRPL](https://xrpl.org/) — XRP Ledger liquidity rail
-- [VeChain](https://www.vechain.org/) — Evidence and attestation layer (coming)
-- [Canton Network](https://www.canton.network/) — Institutional legal authority layer (coming)
+- [VeChain](https://www.vechain.org/) — Evidence and attestation layer (testnet adapter)
+- [Canton Network](https://www.canton.network/) — Institutional legal authority layer (DAML JSON API adapter)
 
 ---
 
