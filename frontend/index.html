@@ -404,7 +404,8 @@
             'function unpledgeEBL(uint256 _id)',
             'function surrenderEBL(uint256 _id)',
             'function getEBL(uint256 _id) view returns (tuple(uint256 id, address carrier, address holder, address pledgee, string documentHash, string vesselName, string portOfLoading, string portOfDischarge, string goodsDescription, uint8 status))',
-            'function eblCount() view returns (uint256)'
+            'function eblCount() view returns (uint256)',
+            'event EBLIssued(uint256 id, address carrier, address holder, string documentHash)'
           ]
         },
         Invoice: {
@@ -591,15 +592,22 @@
           const tx = await contract.issueEBL(holder, docHash, vessel, portLoad, portDischarge, goods);
           notify('Transaction sent — waiting for confirmation...');
           const receipt = await tx.wait();
-          const count = await contract.eblCount();
-          currentEBLId = count;
-document.getElementById('view-evidence-btn').setAttribute('onclick', 'viewEvidenceFor(' + count.toString() + ')');
-          document.getElementById('confirm-ebl-id').textContent = 'eBL #' + count + ' Issued';
+          let newId = null;
+          for (const log of receipt.logs) {
+            try {
+              const parsed = contract.interface.parseLog(log);
+              if (parsed && parsed.name === 'EBLIssued') { newId = Number(parsed.args.id); break; }
+            } catch {}
+          }
+          if (!newId) newId = Number(await contract.eblCount());
+          currentEBLId = newId;
+          document.getElementById('view-evidence-btn').setAttribute('onclick', 'viewEvidenceFor(' + newId + ')');
+          document.getElementById('confirm-ebl-id').textContent = 'eBL #' + newId + ' Issued';
           document.getElementById('confirm-tx-hash').textContent = receipt.hash.slice(0,16) + '...';
           document.getElementById('confirm-holder').textContent = shortAddr(holder);
           document.getElementById('ebl-form-view').style.display = 'none';
           document.getElementById('ebl-confirm-view').style.display = 'block';
-          notify('eBL #' + count + ' issued successfully on XDC Apothem');
+          notify('eBL #' + newId + ' issued successfully on XDC Apothem');
         } catch(e) {
           notify('Transaction failed: ' + (e.reason || e.message));
         }
@@ -669,44 +677,69 @@ document.getElementById('view-evidence-btn').setAttribute('onclick', 'viewEviden
           const pill = document.getElementById('ev-status-pill');
           pill.textContent = statusLabel;
           pill.className = 'pill ' + statusClass;
-          renderEvidenceTrail(id, ebl);
+          await renderEvidenceTrail(id, ebl);
         } catch(e) { notify('Error loading eBL: ' + (e.reason || e.message)); }
       }
       
-      function renderEvidenceTrail(id, ebl) {
-        const now = new Date();
-        const fmt = d => d.toISOString().slice(0,16).replace('T',' ') + ' UTC';
-        const dates = [
-          new Date(now - 5*86400000), new Date(now - 4*86400000),
-          new Date(now - 3*86400000), new Date(now - 2*86400000),
-          null, null, null
-        ];
-        const events = [
-          { done: true,  event: 'Goods packed and sealed',  meta: 'Warehouse operator · ' + (ebl.portOfLoading || '—'), hash: 'Qm' + id + 'Pack...a3F' },
-          { done: true,  event: 'Inspection passed',         meta: 'Certified inspector · photo hash attached',          hash: 'Qm' + id + 'Insp...7B2' },
-          { done: true,  event: 'Carrier acceptance',        meta: 'Carrier confirmed goods received',                   hash: 'Qm' + id + 'Carr...9D1' },
-          { done: true,  event: 'Vessel departed',           meta: (ebl.vesselName || '—') + ' · AIS oracle + port authority', hash: 'Qm' + id + 'Dept...4E8' },
-          { done: false, event: 'Port arrival',              meta: 'Expected ' + (ebl.portOfDischarge || '—') + ' · awaiting', hash: null },
-          { done: false, event: 'Customs cleared',           meta: 'Pending port arrival',                               hash: null },
-          { done: false, event: 'Delivery confirmed',        meta: 'Pending customs clearance',                          hash: null },
-        ];
+      const VECHAIN_LABELS = {
+        GOODS_PACKED:       { label: 'Goods packed and sealed',  metaFn: (m, ebl) => 'Warehouse operator · ' + (ebl.portOfLoading || m.location || '—') },
+        INSPECTION_PASSED:  { label: 'Inspection passed',         metaFn: (m)      => 'Certified inspector' + (m.inspector ? ' · ' + m.inspector : '') },
+        CARRIER_ACCEPTANCE: { label: 'Carrier acceptance',        metaFn: (m, ebl) => (ebl.vesselName || '—') + ' · carrier confirmed goods received' },
+        VESSEL_DEPARTED:    { label: 'Vessel departed',           metaFn: (m, ebl) => (ebl.vesselName || '—') + ' · ' + (m.port || ebl.portOfLoading || '—') },
+        PORT_ARRIVAL:       { label: 'Port arrival',              metaFn: (m, ebl) => (m.port || ebl.portOfDischarge || '—') + ' · ' + (m.status || 'arrived') },
+        CUSTOMS_CLEARED:    { label: 'Customs cleared',           metaFn: (m, ebl) => (m.authority || 'Customs authority') + ' · ' + (ebl.portOfDischarge || '—') },
+        DELIVERY_CONFIRMED: { label: 'Delivery confirmed',        metaFn: (m)      => 'Consignee confirmed receipt' + (m.reference ? ' · ref ' + m.reference : '') },
+      };
+      const EVENT_ORDER = ['GOODS_PACKED','INSPECTION_PASSED','CARRIER_ACCEPTANCE','VESSEL_DEPARTED','PORT_ARRIVAL','CUSTOMS_CLEARED','DELIVERY_CONFIRMED'];
+
+      async function renderEvidenceTrail(id, ebl) {
+        const container = document.getElementById('evidence-trail-content');
+        container.innerHTML = '<div class="loading">Loading VeChain evidence trail...</div>';
+
+        let attestations = [];
+        try {
+          const resp = await fetch('/vechain_attestations.json');
+          if (resp.ok) {
+            const index = await resp.json();
+            attestations = (index[String(id)] || []).sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+          }
+        } catch {}
+
+        const attestedTypes = new Set(attestations.map(a => a.eventType));
+        const fmt = ts => ts ? ts.slice(0,16).replace('T',' ') + ' UTC' : '';
+
+        if (attestations.length === 0) {
+          container.innerHTML = `<div class="loading" style="text-align:left;padding:16px 0;">
+            <div style="font-weight:500;color:var(--text-2);margin-bottom:8px;">No VeChain attestations recorded yet</div>
+            <div style="font-size:12px;color:var(--text-3);line-height:1.6;">
+              Run <span style="font-family:var(--font-mono);">node scripts/vechain-live-test.js --instrument ${id}</span> once VeChain testnet keys are configured to record real shipping events on-chain.
+            </div>
+          </div>`;
+          return;
+        }
+
         let html = '';
-        events.forEach((ev, i) => {
-          const dotClass = ev.done ? 'ev-dot-green' : (i === 4 ? 'ev-dot-amber' : 'ev-dot-gray');
-          const line = i < events.length - 1 ? '<div class="ev-line"></div>' : '';
-          const hashHtml = ev.hash ? `<div class="evidence-hash">${ev.hash}</div>` : '';
-          const dateStr = dates[i] ? ` · ${fmt(dates[i])}` : '';
+        EVENT_ORDER.forEach((type, i) => {
+          const def = VECHAIN_LABELS[type];
+          const match = attestations.filter(a => a.eventType === type).pop();
+          const done = !!match;
+          const dotClass = done ? 'ev-dot-green' : (i === attestedTypes.size ? 'ev-dot-amber' : 'ev-dot-gray');
+          const line = i < EVENT_ORDER.length - 1 ? '<div class="ev-line"></div>' : '';
+          const metaStr = done ? def.metaFn(match.metadata || {}, ebl) : (i < attestedTypes.size ? 'Pending' : 'Awaiting prior events');
+          const dateStr = done ? ` · ${fmt(match.timestamp)}` : '';
+          const txShort = match ? match.txHash.slice(0,10) + '...' + match.txHash.slice(-6) : null;
+          const hashHtml = txShort ? `<div class="evidence-hash"><a href="https://explore-testnet.vechain.org/transactions/${match.txHash}" target="_blank" style="color:inherit;text-decoration:none;">${txShort}</a></div>` : '';
           html += `<div class="evidence-item">
             <div class="evidence-timeline"><div class="ev-dot ${dotClass}"></div>${line}</div>
             <div class="evidence-content">
-              <div class="evidence-event">${ev.event}</div>
-              <div class="evidence-meta">${ev.meta}<span style="color:var(--text-3);font-size:10px;">${dateStr}</span></div>
+              <div class="evidence-event">${def.label}</div>
+              <div class="evidence-meta">${metaStr}<span style="color:var(--text-3);font-size:10px;">${dateStr}</span></div>
               ${hashHtml}
             </div>
             <span class="chain-tag tag-vechain" style="align-self:flex-start;flex-shrink:0;">VeChain</span>
           </div>`;
         });
-        document.getElementById('evidence-trail-content').innerHTML = html;
+        container.innerHTML = html;
       }
       
       function approveFinancing() {
