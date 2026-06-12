@@ -152,6 +152,8 @@ npm install
 
 ### Run Tests
 
+No `.env` file needed — tests run on the local Hardhat network. A `.env` is only required for testnet deployment.
+
 ```bash
 npx hardhat test
 ```
