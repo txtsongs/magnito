@@ -198,7 +198,7 @@ npx hardhat run scripts/deploy.js --network xdcApothem
 
 ## Target Institutions
 
-- **ITFA Fintech Committee** — Digital Negotiable Instruments initiative, Andre Kasam
+- **ITFA Fintech Committee** — Digital Negotiable Instruments initiative, André Casterman (chair)
 - **XRPL Foundation** — ecosystem grants, Spring 2026 window
 - **XDC Foundation** — trade finance native ecosystem, builder grants
 - **ICC Digital Standards Initiative** — reliability assessment and certification
