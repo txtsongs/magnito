@@ -35,7 +35,7 @@ All four trade finance instruments live here as legally structured smart contrac
 Real-world events are attested here — goods packed, inspection passed, vessel departed, delivery confirmed. Signed by verified party wallets. The operational truth layer that financing logic queries before releasing funds.
 
 **XRP Ledger — Settle the Payment**
-Public liquidity rail. eBLs represented as NFTs. Receivables as trustline-gated IOUs. Fast, low-cost cross-border settlement. Long-term: RLUSD for on-chain payment.
+Public liquidity rail. Today the bridge writes a signed, hash-anchored settlement/representation record for each bridge event as an XRPL memo transaction — evidence that the bridge happened, not an enforceable title (XDC remains the authoritative ledger for that). NFT- or MPT-based representation, so the XRPL side itself becomes independently enforceable, is roadmap work, not current behavior. Long-term: RLUSD for on-chain payment.
 
 **Ethereum — Enforce the Dispute**
 Master agreement logic, collateral enforcement, syndicated participation registry, high-value final settlement.
@@ -54,7 +54,7 @@ Moves instruments between chains while guaranteeing only one authoritative versi
 | Letter of Credit (LC) | Bank payment guarantee — eUCP v2.1, 5-day examination window, discrepancy handling | 29 passing | ✅ Deployed |
 | Bill of Exchange | Digital negotiable instrument — ITFA DNI aligned, transferable, discountable, legally enforceable | 34 passing | ✅ Deployed |
 
-**118 passing tests across all four contracts.**
+**109 passing tests across all four contracts, 140 passing across the full suite** (contracts + shared `IInstrument` interface + bridge orchestrator, including durable crash-recovery tests).
 
 ---
 
@@ -108,16 +108,18 @@ The fundamental rule: at any moment, only one ledger is authoritative for a give
 
 magnito/
 ├── contracts/
+│   ├── IInstrument.sol       # Shared bridge-facing interface — lock/unlock/markBridged/isBridged/bridgeState
 │   ├── Invoice.sol           # Tokenized trade invoice — 21 tests
 │   ├── BillOfLading.sol      # Electronic Bill of Lading — 25 tests
 │   ├── LetterOfCredit.sol    # Letter of Credit — 29 tests
 │   └── BillOfExchange.sol    # Bill of Exchange — 34 tests
 ├── bridge/
-│   ├── orchestrator.js        # Chain-agnostic 2PC engine
+│   ├── orchestrator.js        # Chain-agnostic 2PC engine — durable journal + crash recovery
+│   ├── journalStore.js        # Durable on-disk journal for in-flight bridges
 │   ├── run-bridge.js          # Live bridge runner
 │   └── adapters/
-│       ├── evm-adapter.js     # Covers all EVM chains
-│       ├── xrpl-adapter.js    # XRPL testnet adapter
+│       ├── evm-adapter.js     # Covers all EVM chains AND all four instruments via IInstrument
+│       ├── xrpl-adapter.js    # XRPL testnet adapter — settlement/representation record, not enforceable title
 │       ├── vechain-adapter.js # VeChain testnet — evidence and attestation (VIP-191 fee delegation)
 │       └── canton-adapter.js  # Canton — legal authority layer via DAML JSON API
 ├── scripts/
@@ -128,7 +130,9 @@ magnito/
 │   ├── Invoice.js
 │   ├── BillOfLading.js
 │   ├── LetterOfCredit.js
-│   └── BillOfExchange.js
+│   ├── BillOfExchange.js
+│   ├── IInstrument.js        # Shared interface + terminal Bridged state
+│   └── bridge/                # Orchestrator, adapter-generalization, and crash-recovery tests
 ├── frontend/
 │   └── index.html            # Five-screen interface
 └── hardhat.config.js
@@ -179,11 +183,12 @@ npx hardhat run scripts/deploy.js --network xdcApothem
 - [x] Electronic Bill of Lading (eBL) contract — 25 tests passing
 - [x] Letter of Credit (LC) contract — 29 tests passing
 - [x] Bill of Exchange contract — 34 tests passing
-- [x] 118 passing tests across all four instruments
+- [x] 109 passing tests across all four instruments (140 across the full suite)
 - [x] Deployed to Ethereum Sepolia — all four contracts
 - [x] Deployed to XDC Apothem — all four contracts
-- [x] Chain-agnostic bridge orchestrator with adapter pattern
-- [x] XRPL adapter — live bridge run across three chains
+- [x] Shared `IInstrument` interface — all four contracts bridgeable through one adapter, zero per-instrument code
+- [x] Chain-agnostic bridge orchestrator — durable journal + crash recovery, singularity confirmed on-chain before being logged
+- [x] XRPL adapter — live bridge run across three chains (settlement/representation record, not enforceable title)
 - [x] Evidence logger — structured audit bundles per bridge cycle
 - [x] ISO 20022 adapter — pain.001 and camt.054 message stubs
 - [x] Five-screen frontend — dashboard, issue eBL, evidence trail, bridge, all instruments
