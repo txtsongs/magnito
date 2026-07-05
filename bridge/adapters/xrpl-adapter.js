@@ -2,7 +2,18 @@
  * XRPL Adapter
  * Implements the standard Magnito adapter interface for the XRP Ledger.
  * Non-EVM chain — uses the xrpl.js library instead of ethers.js.
- * 
+ *
+ * Honest framing: XRPL is Magnito's settlement/liquidity rail, not a second
+ * title ledger. Every method here writes a signed JSON memo on a 1-drop
+ * Payment transaction — a representation/settlement record of a bridge
+ * event, not an on-chain object with enforceable transfer/holder semantics.
+ * Nothing on XRPL currently gates who can write a memo naming a given
+ * instrumentId, so "locked"/"committed" here means "recorded", not
+ * "enforced" — XDC remains the sole authoritative, enforcing ledger for
+ * MLETR singularity. Upgrading this to an actually enforceable
+ * representation (XLS-20 NFTs or MPTs) is tracked as separate roadmap
+ * work, not implied by these method names.
+ *
  * Implements the standard Magnito adapter interface:
  * - lockInstrument()
  * - commitInstrument()
@@ -81,10 +92,12 @@ class XRPLAdapter {
 
   /**
    * Lock an instrument — Phase 1 of 2PC
-   * On XRPL, locking is recorded as a memo transaction
+   * XRPL never holds title, so there is nothing to freeze here — this
+   * writes a settlement/representation record noting that the source
+   * instrument was locked elsewhere.
    */
   async lockInstrument(instrumentId) {
-    console.log(`[XRPLAdapter] Recording lock for instrument ${instrumentId}...`);
+    console.log(`[XRPLAdapter] Writing settlement record: lock noted for instrument ${instrumentId}...`);
     const txHash = await this.submitMemo({
       magnito: "bridge",
       action: "lock",
@@ -103,10 +116,13 @@ class XRPLAdapter {
 
   /**
    * Commit an instrument — Phase 2 of 2PC
-   * Records the final commitment on XRPL
+   * Writes a settlement/representation record marking the bridge as
+   * finalized from XRPL's side. This is a record of the fact, not an
+   * enforcement of it — the terminal, enforced state lives on the source
+   * chain via markBridged().
    */
   async commitInstrument(instrumentId) {
-    console.log(`[XRPLAdapter] Recording commit for instrument ${instrumentId}...`);
+    console.log(`[XRPLAdapter] Writing settlement record: commit noted for instrument ${instrumentId}...`);
     const txHash = await this.submitMemo({
       magnito: "bridge",
       action: "commit",
@@ -125,10 +141,12 @@ class XRPLAdapter {
 
   /**
    * Abort an instrument — rollback on failure
-   * Records the abort event on XRPL
+   * Writes a settlement/representation record noting the abort. There is
+   * no XRPL-side state to actually roll back — the real rollback happens
+   * on the source chain via unlock().
    */
   async abortInstrument(instrumentId) {
-    console.log(`[XRPLAdapter] Recording abort for instrument ${instrumentId}...`);
+    console.log(`[XRPLAdapter] Writing settlement record: abort noted for instrument ${instrumentId}...`);
     const txHash = await this.submitMemo({
       magnito: "bridge",
       action: "abort",
@@ -146,11 +164,15 @@ class XRPLAdapter {
   }
 
   /**
-   * Issue a representation of an instrument on XRPL
-   * Records the instrument data as a memo transaction
+   * Write a settlement/representation record for an instrument on XRPL
+   * Records the instrument data as a memo transaction. This is evidence
+   * that a bridge is in progress, not a controllable on-chain object — no
+   * XRPL account holds "the" representation the way an XDC address holds
+   * an instrument; anyone can write a memo naming any instrumentId. Treat
+   * this as a settlement-layer audit trail, not a title.
    */
   async issueInstrument(instrumentId, instrumentData) {
-    console.log(`[XRPLAdapter] Issuing XRPL representation for instrument ${instrumentId}...`);
+    console.log(`[XRPLAdapter] Writing settlement/representation record for instrument ${instrumentId}...`);
     const txHash = await this.submitMemo({
       magnito: "bridge",
       action: "issue",
@@ -173,14 +195,23 @@ class XRPLAdapter {
 
   /**
    * Get the current status of an instrument on XRPL
-   * Returns the most recent bridge event for this instrument
+   *
+   * This does not query or index memo history — it is a stub that always
+   * reports "Active". A real implementation would need to walk this
+   * account's transaction history for memos matching instrumentId, and
+   * even then the result would be a settlement/representation record, not
+   * an enforceable status the way IInstrument.bridgeState() is on the
+   * source chain. Not used for anything decision-critical today: the
+   * orchestrator only calls getInstrumentStatus() on the SOURCE adapter
+   * (to confirm the terminal Bridged state and to drive crash recovery),
+   * never on the XRPL target adapter.
    */
   async getInstrumentStatus(instrumentId) {
     return {
       instrumentId: instrumentId.toString(),
       status: "Active",
       chain: this.chainId,
-      note: "XRPL status determined by most recent bridge memo transaction",
+      note: "Stub — does not reflect actual memo history. See method comment.",
     };
   }
 }
