@@ -28,7 +28,7 @@ async function main() {
     chainId: "ethereum-sepolia",
     rpcUrl: process.env.ALCHEMY_API_URL,
     privateKey: process.env.PRIVATE_KEY,
-    invoiceAddress: "0xD752F870Db8eBF90eD87dD5115D4C62980FbE093",
+    instrumentAddress: "0xD752F870Db8eBF90eD87dD5115D4C62980FbE093",
   });
   orchestrator.registerAdapter("ethereum-sepolia", ethereumAdapter);
 
@@ -38,7 +38,7 @@ async function main() {
     chainId: "xdc-apothem",
     rpcUrl: "https://rpc.apothem.network",
     privateKey: process.env.PRIVATE_KEY,
-    invoiceAddress: "0x71B2d0Bdb72dB416930fDEc4bCa4DbF53288AF18",
+    instrumentAddress: "0x71B2d0Bdb72dB416930fDEc4bCa4DbF53288AF18",
   });
   orchestrator.registerAdapter("xdc-apothem", xdcAdapter);
 
