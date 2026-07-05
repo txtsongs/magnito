@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./IInstrument.sol";
+
 /**
  * @title LetterOfCredit
  * @notice Magnito's Letter of Credit (LC) contract
@@ -10,16 +12,18 @@ pragma solidity ^0.8.28;
  *      - Discrepancy handling
  *      - Accept / Refuse flows
  */
-contract LetterOfCredit {
+contract LetterOfCredit is IInstrument {
 
     // The possible states of an LC
-    enum Status { 
+    enum Status {
         Open,           // LC is active and awaiting presentation
         Presented,      // Documents have been presented
         Discrepancy,    // Bank has flagged a problem
         Accepted,       // Bank has accepted documents - payment due
         Refused,        // Bank has refused the presentation
-        Expired         // LC has expired without presentation
+        Expired,        // LC has expired without presentation
+        Locked,         // Frozen for a cross-chain bridge (IInstrument)
+        Bridged         // Terminal — bridged to another chain, irreversible (IInstrument)
     }
 
     // The data structure of a single LC
@@ -73,6 +77,18 @@ contract LetterOfCredit {
     );
     event LCExpired(
         uint256 id
+    );
+    event LCLocked(
+        uint256 id,
+        address issuingBank
+    );
+    event LCUnlocked(
+        uint256 id,
+        address issuingBank
+    );
+    event LCBridged(
+        uint256 id,
+        address issuingBank
     );
 
     // ─────────────────────────────────────────
@@ -256,6 +272,77 @@ contract LetterOfCredit {
         lc.status = Status.Expired;
 
         emit LCExpired(_id);
+    }
+
+    // ─────────────────────────────────────────
+    // IInstrument — standard bridge-facing interface
+    // ─────────────────────────────────────────
+
+    /**
+     * @notice Freeze an LC in preparation for a cross-chain bridge
+     * @dev Only the issuing bank can lock. Only lockable while Open — an LC
+     *      already mid-presentation/examination is not bridged out from
+     *      under that in-flight UCP workflow.
+     */
+    function lock(uint256 _id) external override {
+        LCData storage lc = lcs[_id];
+
+        require(lc.id != 0, "LC does not exist");
+        require(lc.status == Status.Open, "LC is not open");
+        require(msg.sender == lc.issuingBank, "Only the issuing bank can lock");
+
+        lc.status = Status.Locked;
+        emit LCLocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Reverse a lock if the bridge aborts — returns the LC to Open
+     * @dev Only the issuing bank can unlock.
+     */
+    function unlock(uint256 _id) external override {
+        LCData storage lc = lcs[_id];
+
+        require(lc.id != 0, "LC does not exist");
+        require(lc.status == Status.Locked, "LC is not locked");
+        require(msg.sender == lc.issuingBank, "Only the issuing bank can unlock");
+
+        lc.status = Status.Open;
+        emit LCUnlocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Finalize a bridge — moves a locked LC to the terminal Bridged state
+     * @dev Only callable from Locked. Irreversible.
+     */
+    function markBridged(uint256 _id) external override {
+        LCData storage lc = lcs[_id];
+
+        require(lc.id != 0, "LC does not exist");
+        require(lc.status == Status.Locked, "LC is not locked");
+        require(msg.sender == lc.issuingBank, "Only the issuing bank can mark as bridged");
+
+        lc.status = Status.Bridged;
+        emit LCBridged(_id, msg.sender);
+    }
+
+    /**
+     * @notice Whether the LC has reached the terminal Bridged state
+     */
+    function isBridged(uint256 _id) external view override returns (bool) {
+        require(lcs[_id].id != 0, "LC does not exist");
+        return lcs[_id].status == Status.Bridged;
+    }
+
+    /**
+     * @notice LC's own eight-state enum, collapsed to the three-value
+     *         bridge lifecycle every instrument shares.
+     */
+    function bridgeState(uint256 _id) external view override returns (BridgeState) {
+        LCData storage lc = lcs[_id];
+        require(lc.id != 0, "LC does not exist");
+        if (lc.status == Status.Bridged) return BridgeState.Bridged;
+        if (lc.status == Status.Locked) return BridgeState.Locked;
+        return BridgeState.Live;
     }
 
     // ─────────────────────────────────────────

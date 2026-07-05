@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./IInstrument.sol";
+
 /**
  * @title BillOfExchange
  * @notice Magnito's fourth trade finance instrument
@@ -9,17 +11,19 @@ pragma solidity ^0.8.28;
  * amount to a payee on a specific date. Under MLETR it becomes a legally enforceable
  * digital negotiable instrument that can be transferred, accepted, and discounted.
  */
-contract BillOfExchange {
+contract BillOfExchange is IInstrument {
 
     // The possible states of a Bill of Exchange
-    enum Status { 
+    enum Status {
         Issued,       // Created by drawer, awaiting acceptance
         Accepted,     // Drawee has accepted the payment obligation
         Transferred,  // Transferred to a new payee
         Discounted,   // Sold to a financier at a discount for early payment
         Settled,      // Payment has been made
         Dishonoured,  // Payment was refused
-        Cancelled     // Cancelled before acceptance
+        Cancelled,    // Cancelled before acceptance
+        Locked,       // Frozen for a cross-chain bridge (IInstrument)
+        Bridged       // Terminal — bridged to another chain, irreversible (IInstrument)
     }
 
     // The data structure of a single Bill of Exchange
@@ -49,6 +53,9 @@ contract BillOfExchange {
     event BOESettled(uint256 id);
     event BOEDishonoured(uint256 id);
     event BOECancelled(uint256 id);
+    event BOELocked(uint256 id, address drawer);
+    event BOEUnlocked(uint256 id, address drawer);
+    event BOEBridged(uint256 id, address drawer);
 
     /**
      * @notice Issue a new Bill of Exchange
@@ -202,6 +209,75 @@ contract BillOfExchange {
 
         bill.status = Status.Cancelled;
         emit BOECancelled(_id);
+    }
+
+    // ─────────────────────────────────────────
+    // IInstrument — standard bridge-facing interface
+    // ─────────────────────────────────────────
+
+    /**
+     * @notice Freeze a bill in preparation for a cross-chain bridge
+     * @dev Only the drawer can lock. Only lockable while Issued — a bill
+     *      that has already been accepted, transferred, or discounted
+     *      carries obligations to other parties (drawee, payee, financier)
+     *      that a bridge must not silently freeze out from under them.
+     */
+    function lock(uint256 _id) external override {
+        BOEData storage bill = bills[_id];
+        require(bill.id != 0, "Bill does not exist");
+        require(bill.status == Status.Issued, "Bill is not in issued state");
+        require(msg.sender == bill.drawer, "Only the drawer can lock");
+
+        bill.status = Status.Locked;
+        emit BOELocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Reverse a lock if the bridge aborts — returns the bill to Issued
+     * @dev Only the drawer can unlock.
+     */
+    function unlock(uint256 _id) external override {
+        BOEData storage bill = bills[_id];
+        require(bill.id != 0, "Bill does not exist");
+        require(bill.status == Status.Locked, "Bill is not locked");
+        require(msg.sender == bill.drawer, "Only the drawer can unlock");
+
+        bill.status = Status.Issued;
+        emit BOEUnlocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Finalize a bridge — moves a locked bill to the terminal Bridged state
+     * @dev Only callable from Locked. Irreversible.
+     */
+    function markBridged(uint256 _id) external override {
+        BOEData storage bill = bills[_id];
+        require(bill.id != 0, "Bill does not exist");
+        require(bill.status == Status.Locked, "Bill is not locked");
+        require(msg.sender == bill.drawer, "Only the drawer can mark as bridged");
+
+        bill.status = Status.Bridged;
+        emit BOEBridged(_id, msg.sender);
+    }
+
+    /**
+     * @notice Whether the bill has reached the terminal Bridged state
+     */
+    function isBridged(uint256 _id) external view override returns (bool) {
+        require(bills[_id].id != 0, "Bill does not exist");
+        return bills[_id].status == Status.Bridged;
+    }
+
+    /**
+     * @notice The bill's own nine-state enum, collapsed to the three-value
+     *         bridge lifecycle every instrument shares.
+     */
+    function bridgeState(uint256 _id) external view override returns (BridgeState) {
+        BOEData storage bill = bills[_id];
+        require(bill.id != 0, "Bill does not exist");
+        if (bill.status == Status.Bridged) return BridgeState.Bridged;
+        if (bill.status == Status.Locked) return BridgeState.Locked;
+        return BridgeState.Live;
     }
 
     /**

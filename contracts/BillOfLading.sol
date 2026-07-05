@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./IInstrument.sol";
+
 /**
  * @title BillOfLading
  * @notice Magnito's Electronic Bill of Lading (eBL) contract
@@ -10,10 +12,12 @@ pragma solidity ^0.8.28;
  *      - Control: only the holder can transfer
  *      - Integrity: document hash anchored on-chain
  */
-contract BillOfLading {
+contract BillOfLading is IInstrument {
 
     // The possible states of an eBL
-    enum Status { Active, Pledged, Surrendered }
+    // Locked/Bridged support cross-chain bridging (IInstrument); Bridged is
+    // terminal — once set, no other function may change it again.
+    enum Status { Active, Pledged, Surrendered, Locked, Bridged }
 
     // The data structure of a single eBL
     struct EBLData {
@@ -56,6 +60,18 @@ contract BillOfLading {
         address holder
     );
     event EBLSurrendered(
+        uint256 id,
+        address holder
+    );
+    event EBLLocked(
+        uint256 id,
+        address holder
+    );
+    event EBLUnlocked(
+        uint256 id,
+        address holder
+    );
+    event EBLBridged(
         uint256 id,
         address holder
     );
@@ -194,6 +210,77 @@ contract BillOfLading {
         ebl.status = Status.Surrendered;
 
         emit EBLSurrendered(_id, msg.sender);
+    }
+
+    // ─────────────────────────────────────────
+    // IInstrument — standard bridge-facing interface
+    // ─────────────────────────────────────────
+
+    /**
+     * @notice Freeze an eBL in preparation for a cross-chain bridge
+     * @dev Only the current holder can lock. Only lockable while Active —
+     *      mirrors the singularity rule: a pledged or surrendered eBL cannot
+     *      be bridged out from under its current legal state.
+     */
+    function lock(uint256 _id) external override {
+        EBLData storage ebl = ebls[_id];
+
+        require(ebl.id != 0, "eBL does not exist");
+        require(ebl.status == Status.Active, "eBL is not active");
+        require(msg.sender == ebl.holder, "Only the holder can lock");
+
+        ebl.status = Status.Locked;
+        emit EBLLocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Reverse a lock if the bridge aborts — returns the eBL to Active
+     * @dev Only the holder can unlock.
+     */
+    function unlock(uint256 _id) external override {
+        EBLData storage ebl = ebls[_id];
+
+        require(ebl.id != 0, "eBL does not exist");
+        require(ebl.status == Status.Locked, "eBL is not locked");
+        require(msg.sender == ebl.holder, "Only the holder can unlock");
+
+        ebl.status = Status.Active;
+        emit EBLUnlocked(_id, msg.sender);
+    }
+
+    /**
+     * @notice Finalize a bridge — moves a locked eBL to the terminal Bridged state
+     * @dev Only callable from Locked. Irreversible.
+     */
+    function markBridged(uint256 _id) external override {
+        EBLData storage ebl = ebls[_id];
+
+        require(ebl.id != 0, "eBL does not exist");
+        require(ebl.status == Status.Locked, "eBL is not locked");
+        require(msg.sender == ebl.holder, "Only the holder can mark as bridged");
+
+        ebl.status = Status.Bridged;
+        emit EBLBridged(_id, msg.sender);
+    }
+
+    /**
+     * @notice Whether the eBL has reached the terminal Bridged state
+     */
+    function isBridged(uint256 _id) external view override returns (bool) {
+        require(ebls[_id].id != 0, "eBL does not exist");
+        return ebls[_id].status == Status.Bridged;
+    }
+
+    /**
+     * @notice eBL's own five-state enum, collapsed to the three-value
+     *         bridge lifecycle every instrument shares.
+     */
+    function bridgeState(uint256 _id) external view override returns (BridgeState) {
+        EBLData storage ebl = ebls[_id];
+        require(ebl.id != 0, "eBL does not exist");
+        if (ebl.status == Status.Bridged) return BridgeState.Bridged;
+        if (ebl.status == Status.Locked) return BridgeState.Locked;
+        return BridgeState.Live;
     }
 
     // ─────────────────────────────────────────

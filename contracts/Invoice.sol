@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "./IInstrument.sol";
+
 /**
  * @title Invoice
  * @notice Magnito's first trade finance instrument
  * @dev Represents a tokenized trade invoice on the blockchain
  */
-contract Invoice {
+contract Invoice is IInstrument {
 
     // The possible states of an invoice
-    enum Status { Pending, Paid, Cancelled, Locked }
+    // Bridged is terminal: once set, no other function may change it again.
+    enum Status { Pending, Paid, Cancelled, Locked, Bridged }
 
     // The data structure of a single invoice
     struct InvoiceData {
@@ -31,6 +34,7 @@ event InvoicePaid(uint256 id, address buyer);
 event InvoiceCancelled(uint256 id);
 event InvoiceLocked(uint256 id);
 event InvoiceUnlocked(uint256 id);
+event InvoiceBridged(uint256 id);
 
     /**
      * @notice Create a new trade invoice
@@ -116,6 +120,55 @@ event InvoiceUnlocked(uint256 id);
         invoice.status = Status.Pending;
         emit InvoiceUnlocked(_id);
     }
+
+    /**
+     * @notice Finalize a bridge — moves a locked invoice to the terminal Bridged state
+     * @dev Part of IInstrument. Only callable from Locked. Irreversible: once Bridged,
+     *      no other function in this contract can ever change the status again.
+     * @param _id The ID of the invoice to mark as bridged
+     */
+    function markBridged(uint256 _id) public override {
+        InvoiceData storage invoice = invoices[_id];
+        require(invoice.id != 0, "Invoice does not exist");
+        require(invoice.status == Status.Locked, "Invoice is not locked");
+        require(msg.sender == invoice.seller, "Only the seller can mark as bridged");
+
+        invoice.status = Status.Bridged;
+        emit InvoiceBridged(_id);
+    }
+
+    // ─────────────────────────────────────────
+    // IInstrument — standard bridge-facing interface
+    // ─────────────────────────────────────────
+    // Invoice's own lockInvoice/unlockInvoice/markBridged above already hold
+    // the real logic and authority checks; these delegate to them unchanged
+    // so the orchestrator/adapters can address any instrument uniformly.
+
+    function lock(uint256 id) external override {
+        lockInvoice(id);
+    }
+
+    function unlock(uint256 id) external override {
+        unlockInvoice(id);
+    }
+
+    function isBridged(uint256 id) external view override returns (bool) {
+        require(invoices[id].id != 0, "Invoice does not exist");
+        return invoices[id].status == Status.Bridged;
+    }
+
+    /**
+     * @notice Invoice's own five-state enum, collapsed to the three-value
+     *         bridge lifecycle every instrument shares.
+     */
+    function bridgeState(uint256 id) external view override returns (BridgeState) {
+        InvoiceData storage invoice = invoices[id];
+        require(invoice.id != 0, "Invoice does not exist");
+        if (invoice.status == Status.Bridged) return BridgeState.Bridged;
+        if (invoice.status == Status.Locked) return BridgeState.Locked;
+        return BridgeState.Live;
+    }
+
     /**
      * @notice Get the details of an invoice
      * @param _id The ID of the invoice to retrieve
